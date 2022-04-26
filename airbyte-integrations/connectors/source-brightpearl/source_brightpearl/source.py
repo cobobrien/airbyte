@@ -10,6 +10,7 @@ from typing import Any, Iterable, List, Mapping, MutableMapping, Optional, Tuple
 from airbyte_cdk.sources.streams.http.auth import NoAuth
 from airbyte_cdk.sources.streams.http import HttpStream, HttpSubStream
 from airbyte_cdk.models import SyncMode
+from itertools import zip_longest
 
 from airbyte_cdk.sources.streams import IncrementalMixin
 import requests
@@ -100,14 +101,13 @@ class BrightpearlStream(HttpStream, ABC):
                 If there are no more pages in the result, return None.
         """
         response = response.json()["response"]["metaData"]
-        self.logger.info(f"response: {response}")
         if response["morePagesAvailable"]:
             return {"firstResult": response["lastResult"] + 1}
         else:
             return None
 
     def should_retry(self, response: requests.Response) -> bool:
-        self.logger.info(f"Headers: {response.headers} Status: {response.status_code}")
+        # self.logger.info(f"Headers: {response.headers} Status: {response.status_code}")
         return response.status_code == 503
 
     def backoff_time(self, response: requests.Response) -> Optional[float]:
@@ -117,15 +117,23 @@ class BrightpearlStream(HttpStream, ABC):
         fall back on default retry behavior.
         Rate Limits Docs: https://api.slack.com/docs/rate-limits#web"""
 
-        self.logger.info("Rate Limit!!!")
+        # self.logger.info("Rate Limit!!!")
 
         if "brightpearl-next-throttle-period" in response.headers:
             return (int(response.headers["brightpearl-next-throttle-period"])/1000)
         else:
-            self.logger.info("Retry-after header not found. Using default backoff value")
+            # self.logger.info("Retry-after header not found. Using default backoff value")
             return 5
 
+    def _to_query_param_date(self, datetime: datetime):
+        return f"{datetime.year}-{datetime.month}-{datetime.day}"
 
+
+    def _find_index_of_column(self, items: dict, column_name: str) -> int:
+        for index, column in enumerate(items["response"]["metaData"]["columns"]):
+            if column["name"] == column_name:
+                return index
+        raise ValueError("Column name not found")
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         """
@@ -145,7 +153,7 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
     def __init__(self, authenticator, start_date: datetime, config, **kwargs):
         super().__init__(authenticator=authenticator, config=config)
         self.start_date = start_date
-        self._cursor_value = None
+        self._cursor_value = start_date
         self._session = requests.Session()
 
     def path(self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None,
@@ -154,22 +162,24 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
 
     @property
     def state(self) -> Mapping[str, Any]:
+        self.logger.debug("Test")
         if self._cursor_value:
-            return {self.cursor_field: self._cursor_value.strftime('%Y-%m-%d')}
+            return {self.cursor_field: self._cursor_value}
         else:
-            return {self.cursor_field: self.start_date.strftime('%Y-%m-%d')}
+            return {self.cursor_field: self.start_date}
 
     @state.setter
     def state(self, value: Mapping[str, Any]):
-        self._cursor_value = datetime.strptime(value[self.cursor_field], '%Y-%m-%d')
+        self._cursor_value = datetime.fromisoformat(value[self.cursor_field])
 
     def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
         for record in super().read_records(*args, **kwargs):
-            if self._cursor_value:
-                latest_record_date = datetime.strptime(record[self.cursor_field], '%Y-%m-%d')
-                self._cursor_value = max(self._cursor_value, latest_record_date)
-            self.logger.info(f"RECORD: {record}")
-            yield record[0]
+            self.logger.info(f"self._cursor_value: {self._cursor_value} of type: {type(self._cursor_value)}")
+            latest_record_date = datetime.fromisoformat(record[-1][self.cursor_field])
+            self.logger.info(f"latest_record_date: {latest_record_date} of type: {type(latest_record_date)}")
+            self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
+            # self.logger.info(f"RECORD: {record}")
+            yield from record
 
     def _chunk_date_range(self, start_date: datetime) -> List[Mapping[str, Any]]:
         """
@@ -178,12 +188,12 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
         """
         dates = []
         while start_date < datetime.now():
-            dates.append({self.cursor_field: start_date.strftime('%Y-%m-%d')})
+            dates.append({self.cursor_field: start_date})
             start_date += timedelta(days=1)
         return dates
 
     def stream_slices(self, sync_mode, cursor_field: List[str] = None, stream_state: Mapping[str, Any] = None) -> Iterable[Optional[Mapping[str, Any]]]:
-        start_date = datetime.strptime(stream_state[self.cursor_field], '%Y-%m-%d') if stream_state and self.cursor_field in stream_state else self.start_date
+        start_date = datetime.fromisoformat(stream_state[self.cursor_field]) if stream_state and self.cursor_field in stream_state else self.start_date
         return self._chunk_date_range(start_date)
 
 
@@ -198,16 +208,23 @@ class Orders(IncrementalBrightpearlStream):
     # TODO: Fill in the primary key. Required. This is usually a unique field in the stream, like an ID or a timestamp.
     primary_key = "id"
 
+    CHUNK_ORDER_CHILD_TASKS_BY = 200
+
+    def _yield_orders(self, orders: dict) -> Iterable[Dict]:
+        groups = zip_longest(*[iter(orders["response"]["results"])] * 200)
+        index_of_order_id = self._find_index_of_column(items=orders, column_name="orderId")
+        for it in groups:
+            yield [str(s[index_of_order_id]) for s in it if s is not None]
 
     def request_params(
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
     ) -> MutableMapping[str, Any]:
 
-        blah_date = datetime.strptime(stream_slice['updatedOn'],'%Y-%m-%d')
-        to_date = datetime.strptime(str(blah_date + timedelta(days=1)),'%Y-%m-%d %H:%M:%S')
-        self.logger.info(f"to_date: {to_date}")
-        self.logger.info(f"stream_slice: {stream_slice}")
-        params = {"updatedOn": f"{stream_slice['updatedOn']}/{to_date.year}-{to_date.month}-{to_date.day}"}
+        updated_on = stream_slice['updatedOn']
+        to_date = updated_on + timedelta(days=1)
+        # self.logger.info(f"to_date: {to_date}")
+        # self.logger.info(f"stream_slice: {stream_slice}")
+        params = {"updatedOn": f"{self._to_query_param_date(updated_on)}/{self._to_query_param_date(to_date)}"}
         if next_page_token:
             params.update(**next_page_token)
         payload_str = urllib.parse.urlencode(params, safe='/')
@@ -222,13 +239,13 @@ class Orders(IncrementalBrightpearlStream):
         return f"order-service/order-search"
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        self.logger.info(f"request URL: {response.request.url}")
-        for order in response.json()["response"]["results"]:
+        # self.logger.info(f"request URL: {response.request.url}")
+        for order_ids in self._yield_orders(response.json()):
 
-            req = self._create_prepared_request(f"{self.url_base}order-service/order/{order[0]}",
+            req = self._create_prepared_request(f"{self.url_base}order-service/order/{','.join(order_ids)}",
                                                 headers=self.authenticator.get_auth_header())
             order_detail_response = self._send_request(req, {})
-            self.logger.info(f"order_detail_response: {order_detail_response.json()['response']}")
+            # self.logger.info(f"order_detail_response: {order_detail_response.json()['response']}")
             yield order_detail_response.json()["response"]
 
 
@@ -249,7 +266,7 @@ class SourceBrightpearl(AbstractSource):
         :param config: A Mapping of the user input configuration as defined in the connector spec.
         """
         auth = CustomAuth(config=config)
-        start_date = datetime.strptime(config['start_date'], '%Y-%m-%d')
+        start_date = datetime.fromisoformat(config['start_date'])
 
         orders = Orders(authenticator=auth, start_date=start_date, config=config)
         # TODO remove the authenticator if not required.

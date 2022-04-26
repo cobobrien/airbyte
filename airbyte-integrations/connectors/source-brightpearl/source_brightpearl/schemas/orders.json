@@ -4,8 +4,326 @@
     "id": {
       "type": ["null", "integer"]
     },
+    "parentOrderId": {
+      "type": ["null", "integer"]
+    },
+    "orderTypeCode": {
+      "type": ["null", "string"]
+    },
+    "reference": {
+      "type": ["null", "string"]
+    },
+    "version": {
+      "type": ["null", "integer"]
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "tax": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "tax": {
+      "type": "object",
+      "properties": {
+        "errors": ["null", "array"]
+      }
+    },
+    "acknowledged": {
+      "type": ["null", "integer"]
+    },
+    "orderStatus": {
+      "type": "object",
+      "properties": {
+        "orderStatusId": {
+          "type": ["null", "integer"]
+        },
+        "name": {
+          "type": ["null", "string"]
+        }
+      }
+    },
+    "orderPaymentStatus": {
+      "type": ["null", "string"]
+    },
+    "stockStatusCode": {
+      "type": ["null", "string"]
+    },
+    "allocationStatusCode": {
+      "type": ["null", "string"]
+    },
+    "shippingStatusCode": {
+      "type": ["null", "string"]
+    },
+    "placedOn": {
+      "type": ["null", "string"]
+    },
+    "createdOn": {
+      "type": ["null", "string"]
+    },
     "updatedOn": {
-      "type": "string"
+      "type": ["null", "string"]
+    },
+    "closedOn": {
+      "type": ["null", "string"]
+    },
+    "createdById": {
+      "type":  ["null", "integer"]
+    },
+    "priceListId": {
+      "type":  ["null", "integer"]
+    },
+    "priceModeCode": {
+      "type":  ["null", "string"]
+    },
+    "delivery": {
+      "type":  "object",
+      "properties":{
+        "deliveryDate": {
+          "type": ["null", "string"]
+        },
+        "shippingMethodId": {
+          "type":  ["null", "integer"]
+        }
+      }
+    },
+    "invoices": {
+      "type":  ["null", "array"],
+      "items": {
+        "type": ["object", "null"],
+        "properties": {
+          "invoiceReference": {
+            "type": ["string", "null"]
+          },
+          "taxDate": {
+            "type": ["string", "null"]
+          },
+          "dueDate": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "currency": {
+      "type":  ["null", "object"],
+      "properties": {
+          "accountingCurrencyCode": {
+            "type": ["string", "null"]
+          },
+          "orderCurrencyCode": {
+            "type": ["string", "null"]
+          },
+          "exchangeRate": {
+            "type": ["string", "null"]
+          },
+          "fixedExchangeRate": {
+            "type": ["null", "boolean"]
+          }
+      }
+    },
+    "totalValue": {
+      "type":  ["null", "object"],
+      "properties": {
+          "net": {
+            "type": ["string", "null"]
+          },
+          "taxAmount": {
+            "type": ["string", "null"]
+          },
+          "baseNet": {
+            "type": ["string", "null"]
+          },
+          "baseTaxAmount": {
+            "type": ["string", "null"]
+          },
+          "baseTotal": {
+            "type": ["string", "null"]
+          },
+          "total": {
+            "type": ["string", "null"]
+          }
+      }
+    },
+    "assignment": {
+      "type":  ["null", "object"],
+      "properties": {
+          "current": {
+            "type":  ["null", "object"],
+            "properties": {
+              "staffOwnerContactId": {
+                "type": ["integer", "null"]
+              },
+              "projectId": {
+                "type": ["integer", "null"]
+              },
+              "channelId": {
+                "type": ["integer", "null"]
+              },
+              "leadSourceId": {
+                "type": ["integer", "null"]
+              },
+              "teamId": {
+                "type": ["integer", "null"]
+              }
+            }
+          }
+      }
+    },
+    "parties": {
+      "type":  ["null", "object"],
+      "properties": {
+          "supplier": {
+            "type":  ["null", "object"],
+            "properties": {
+              "contactId": {
+                "type": ["integer", "null"]
+              },
+              "addressFullName": {
+                "type": ["string", "null"]
+              },
+              "companyName": {
+                "type": ["string", "null"]
+              },
+              "addressLine1": {
+                "type": ["string", "null"]
+              },
+              "addressLine2": {
+                "type": ["string", "null"]
+              },
+              "addressLine3": {
+                "type": ["string", "null"]
+              },
+              "addressLine4": {
+                "type": ["string", "null"]
+              },
+              "postalCode": {
+                "type": ["string", "null"]
+              },
+              "country": {
+                "type": ["string", "null"]
+              },
+              "countryIsoCode": {
+                "type": ["string", "null"]
+              },
+              "countryIsoCode3": {
+                "type": ["string", "null"]
+              },
+              "telephone": {
+                "type": ["string", "null"]
+              },
+              "mobileTelephone": {
+                "type": ["string", "null"]
+              },
+              "email": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "delivery": {
+            "type":  ["null", "object"],
+            "properties": {
+              "addressFullName": {
+                "type": ["string", "null"]
+              },
+              "companyName": {
+                "type": ["string", "null"]
+              },
+              "addressLine1": {
+                "type": ["string", "null"]
+              },
+              "addressLine2": {
+                "type": ["string", "null"]
+              },
+              "addressLine3": {
+                "type": ["string", "null"]
+              },
+              "addressLine4": {
+                "type": ["string", "null"]
+              },
+              "postalCode": {
+                "type": ["string", "null"]
+              },
+              "country": {
+                "type": ["string", "null"]
+              },
+              "countryIsoCode": {
+                "type": ["string", "null"]
+              },
+              "countryIsoCode3": {
+                "type": ["string", "null"]
+              },
+              "telephone": {
+                "type": ["string", "null"]
+              },
+              "mobileTelephone": {
+                "type": ["string", "null"]
+              },
+              "email": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "billing": {
+            "type":  ["null", "object"],
+            "properties": {
+              "contactId": {
+                "type": ["integer", "null"]
+              },
+              "addressFullName": {
+                "type": ["string", "null"]
+              },
+              "companyName": {
+                "type": ["string", "null"]
+              },
+              "addressLine1": {
+                "type": ["string", "null"]
+              },
+              "addressLine2": {
+                "type": ["string", "null"]
+              },
+              "addressLine3": {
+                "type": ["string", "null"]
+              },
+              "addressLine4": {
+                "type": ["string", "null"]
+              },
+              "postalCode": {
+                "type": ["string", "null"]
+              },
+              "country": {
+                "type": ["string", "null"]
+              },
+              "countryIsoCode": {
+                "type": ["string", "null"]
+              },
+              "countryIsoCode3": {
+                "type": ["string", "null"]
+              },
+              "telephone": {
+                "type": ["string", "null"]
+              },
+              "mobileTelephone": {
+                "type": ["string", "null"]
+              },
+              "email": {
+                "type": ["string", "null"]
+              }
+            }
+          }
+      }
+    },
+    "warehouseId": {
+      "type": ["integer", "null"]
+    },
+    "costPriceListId": {
+      "type": ["integer", "null"]
+    },
+    "isDropship": {
+      "type": ["boolean", "null"]
     }
   }
 }

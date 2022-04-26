@@ -1,0 +1,225 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": ["null", "integer"]
+    },
+    "brandId": {
+      "type": ["null", "integer"]
+    },
+    "collectionId": {
+      "type": ["null", "integer"]
+    },
+    "productTypeId": {
+      "type": ["null", "integer"]
+    },
+    "nominalCodeStock": {
+      "type": ["null", "string"]
+    },
+    "nominalCodePurchases": {
+      "type": ["null", "string"]
+    },
+    "nominalCodeSales": {
+      "type": ["null", "string"]
+    },
+    "seasonIds": {
+      "type": ["null", "array"],
+      "items": {
+        "type": ["integer", "null"]
+      }
+    },
+    "identity": {
+      "type": ["null", "object"],
+      "properties": {
+          "sku": {
+            "type": ["null", "string"]
+          },
+          "isbn": {
+            "type": ["null", "string"]
+          },
+          "ean": {
+            "type": ["null", "string"]
+          },
+          "upc": {
+            "type": ["null", "string"]
+          },
+          "barcode": {
+            "type": ["null", "string"]
+          }
+      }
+    },
+    "productGroupId": {
+      "type": ["null", "integer"]
+    },
+    "featured": {
+      "type": ["null", "boolean"]
+    },
+    "stock": {
+      "type": ["null", "object"],
+      "properties": {
+        "stockTracked": {
+          "type": ["null", "boolean"]
+        },
+        "weight": {
+          "type": ["null", "object"],
+          "properties": {
+            "magnitude": {
+              "type": ["null","integer"]
+            }
+          }
+        },
+        "dimensions": {
+          "type": ["null", "object"],
+          "properties": {
+            "length": {
+              "type": ["null","integer"]
+            },
+            "height": {
+              "type": ["null","integer"]
+            },
+            "width": {
+              "type": ["null","integer"]
+            },
+            "volume": {
+              "type": ["null","integer"]
+            }
+          }
+        }
+      }
+    },
+    "financialDetails": {
+      "type": ["null", "object"],
+      "properties": {
+        "taxCode": {
+          "type": ["null", "object"],
+           "properties": {
+             "id": {
+              "type": ["null","integer"]
+            },
+            "code": {
+              "type": ["null","string"]
+            }
+           }
+        }
+      }
+    },
+    "salesChannels": {
+      "type": ["null", "array"],
+      "items": {
+        "type": ["null", "object"],
+        "properties": {
+          "salesChannelName": {
+            "type": ["null","string"]
+          },
+          "productName": {
+            "type": ["null","string"]
+          },
+          "productCondition": {
+            "type": ["null","string"]
+          },
+          "categories": {
+            "type": ["null", "array"],
+            "items": {
+              "type": ["null", "object"],
+              "properties": {
+                "categoryCode": {
+                  "type": ["null","string"]
+                }
+              }
+            }
+          }
+        },
+        "description": {
+          "type": ["null", "object"],
+          "properties": {
+            "languageCode": {
+              "type": ["null","string"]
+            },
+            "text": {
+              "type": ["null","string"]
+            },
+            "format": {
+              "type": ["null","string"]
+            }
+          }
+        },
+        "shortDescription": {
+          "type": ["null", "object"],
+          "properties": {
+            "languageCode": {
+              "type": ["null","string"]
+            },
+            "text": {
+              "type": ["null","string"]
+            },
+            "format": {
+              "type": ["null","string"]
+            }
+          }
+        }
+      }
+    },
+    "composition": {
+      "type": ["null","object"],
+      "properties": {
+        "bundle": {
+          "type": ["null","boolean"]
+        }
+      }
+    },
+    "variations": {
+      "type": ["null", "array"],
+      "items": {
+        "properties": {
+          "optionId": {
+            "type": ["null","integer"]
+          },
+          "optionName": {
+            "type": ["null","string"]
+          },
+          "optionValueId": {
+            "type": ["null","integer"]
+          },
+          "optionValue": {
+            "type": ["null","string"]
+          }
+        }
+      }
+    },
+    "warehouses": {
+      "type": ["null", "string"]
+    },
+    "createdOn": {
+      "type": ["null", "string"]
+    },
+    "updatedOn": {
+      "type": ["null", "string"]
+    },
+    "reporting": {
+      "type": ["null", "object"],
+      "properties": {
+          "categoryId": {
+            "type": ["null","string"]
+          },
+          "subcategoryId": {
+            "type": ["null","integer"]
+          },
+          "seasonId": {
+            "type": ["null","string"]
+          }
+      }
+    },
+    "primarySupplierId": {
+        "type": ["null","integer"]
+    },
+    "status": {
+        "type": ["null","string"]
+    },
+    "salesPopupMessage": {
+        "type": ["null","string"]
+    },
+    "version": {
+        "type": ["null","integer"]
+    }
+  }
+}

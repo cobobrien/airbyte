@@ -163,7 +163,23 @@ class Orders(IncrementalBrightpearlStream):
             order_detail_response = self._send_request(req, {})
             yield order_detail_response.json()["response"]
 
+class Products(IncrementalBrightpearlStream):
+    primary_key = "id"
+    cursor_field = "updatedOn"
 
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"product-service/product-search"
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for product_ids in self._yield_resource_items(response.json(), column_name="productId"):
+
+            req = self._create_prepared_request(f"{self.url_base}product-service/product/{','.join(product_ids)}",
+                                                headers=self.authenticator.get_auth_header())
+            product_detail_response = self._send_request(req, {})
+            yield product_detail_response.json()["response"]
 
 
 # Source
@@ -186,5 +202,7 @@ class SourceBrightpearl(AbstractSource):
         start_date = datetime.fromisoformat(config['start_date'])
 
         orders = Orders(authenticator=auth, start_date=start_date, config=config)
+        products = Products(authenticator=auth, start_date=start_date, config=config)
+
         # TODO remove the authenticator if not required.
-        return [orders]
+        return [orders, products]

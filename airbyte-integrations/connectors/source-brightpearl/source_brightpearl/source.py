@@ -108,6 +108,7 @@ class BrightpearlStream(HttpStream, ABC):
 
     def should_retry(self, response: requests.Response) -> bool:
         self.logger.info(f"Headers: {response.headers} Status: {response.status_code}")
+        return response.status_code == 503
 
     def backoff_time(self, response: requests.Response) -> Optional[float]:
         """This method is called if we run into the rate limit.
@@ -119,7 +120,7 @@ class BrightpearlStream(HttpStream, ABC):
         self.logger.info("Rate Limit!!!")
 
         if "brightpearl-next-throttle-period" in response.headers:
-            return (response.headers["brightpearl-next-throttle-period"]/1000)
+            return (int(response.headers["brightpearl-next-throttle-period"])/1000)
         else:
             self.logger.info("Retry-after header not found. Using default backoff value")
             return 5
@@ -167,7 +168,8 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
             if self._cursor_value:
                 latest_record_date = datetime.strptime(record[self.cursor_field], '%Y-%m-%d')
                 self._cursor_value = max(self._cursor_value, latest_record_date)
-            yield record
+            self.logger.info(f"RECORD: {record}")
+            yield record[0]
 
     def _chunk_date_range(self, start_date: datetime) -> List[Mapping[str, Any]]:
         """
@@ -221,49 +223,13 @@ class Orders(IncrementalBrightpearlStream):
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         self.logger.info(f"request URL: {response.request.url}")
-        # for order in response.json()["response"]["results"]:
-        #     order_detail_response = requests.get(f"{self.url_base}order-service/order/{order[0]}", headers=self.authenticator.get_auth_header())
-            # self.logger.info(f"RESULT: {order_detail_response.json() }")
-        yield response.json()["response"]
+        for order in response.json()["response"]["results"]:
 
-class Order(HttpSubStream, BrightpearlStream):
-
-    primary_key = "id"
-
-    http_method = "GET"
-
-
-    def path(self, **kwargs) -> str:
-        self.logger.info("HEEREREREHERERER")
-
-        return f"order-service/order/"
-
-
-    # def stream_slices(
-    #     self,
-    #     sync_mode: SyncMode,
-    #     cursor_field: List[str] = None,
-    #     stream_state: Mapping[str, Any] = None,
-    # ) -> Iterable[Optional[Mapping[str, Any]]]:
-    #     self.logger.info("HEEREREREHERERER")
-    #
-    #     # gather parent stream records in full
-    #     slices = list(super().stream_slices(SyncMode.full_refresh, cursor_field, stream_state))
-    #     self.logger.info("HEEREREREHERERER")
-    #     self.is_finished = False
-    #     for page in slices:
-    #         for result in page:
-    #             order_id = result[0]
-    #             self.order_ids.append(order_id)
-    #
-    #             self.is_finished = page["metaData"]["morePagesAvailable"] == False
-    #
-    #             yield {"order_id": order_id}
-
-
-    # def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-    #     self.logger.info("HEEREREREHERERER")
-
+            req = self._create_prepared_request(f"{self.url_base}order-service/order/{order[0]}",
+                                                headers=self.authenticator.get_auth_header())
+            order_detail_response = self._send_request(req, {})
+            self.logger.info(f"order_detail_response: {order_detail_response.json()['response']}")
+            yield order_detail_response.json()["response"]
 
 
 # Source
@@ -286,6 +252,5 @@ class SourceBrightpearl(AbstractSource):
         start_date = datetime.strptime(config['start_date'], '%Y-%m-%d')
 
         orders = Orders(authenticator=auth, start_date=start_date, config=config)
-        order = Order(parent=orders, authenticator=auth, config=config)
         # TODO remove the authenticator if not required.
-        return [orders, order]
+        return [orders]

@@ -1,0 +1,57 @@
+{
+  "type": "object",
+  "properties": {
+    "goodsNoteId": {
+      "type": ["null", "integer"]
+    },
+    "warehouseId": {
+      "type": ["null", "integer"]
+    },
+    "reason": {
+      "type": ["null", "string"]
+    },
+    "updatedOn": {
+      "type": "string"
+    },
+    "goodsMoved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": ["null", "integer"]
+          },
+          "quantity": {
+            "type": ["null", "integer"]
+          },
+          "destinationLocationId": {
+            "type": ["null", "integer"]
+          },
+          "batchGoodsNoteId": {
+            "type": ["null", "integer"]
+          },
+          "createdOn": {
+            "type": ["null", "string"]
+          },
+          "createdBy": {
+            "type": ["null", "integer"]
+          },
+          "productValue":{
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": ["null", "string"]
+              },
+              "value": {
+                "type": ["null", "integer"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "warehouses": {
+      "type": ["string", "null"]
+    }
+  }
+}

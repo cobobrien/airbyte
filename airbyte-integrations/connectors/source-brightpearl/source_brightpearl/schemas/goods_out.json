@@ -1,0 +1,116 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "orderId": {
+      "type": "integer"
+    },
+    "warehouseId": {
+      "type": "integer"
+    },
+    "transfer": {
+      "type": "boolean"
+    },
+    "priority": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": ["object", "null"],
+      "properties": {
+        "shipped": {
+          "type": "boolean"
+        },
+        "packed": {
+          "type": "boolean"
+        },
+        "picked": {
+          "type": "boolean"
+        },
+        "printed": {
+          "type": "boolean"
+        },
+        "pickedOn": {
+          "type": "string"
+        },
+        "packedOn": {
+          "type": "string"
+        },
+        "shippedOn": {
+          "type": "string"
+        },
+        "printedOn": {
+          "type": "string"
+        },
+        "pickedById": {
+          "type": "integer"
+        },
+        "packedById": {
+          "type": "integer"
+        },
+        "shippedById": {
+          "type": "integer"
+        },
+        "printedById": {
+          "type": "integer"
+        }
+      }
+    },
+    "shipping": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "type": "string"
+        },
+        "boxes": {
+          "type": "integer"
+        },
+        "shippingMethodId": {
+          "type": "integer"
+        },
+        "weight": {
+          "type": "string"
+        }
+      }
+    },
+    "releaseDate": {
+      "type": "string"
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "createdBy": {
+      "type": "integer"
+    },
+    "orderRows": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "integer"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "occured": {
+            "type": "string"
+          },
+          "eventOwnerId": {
+            "type": "integer"
+          },
+          "eventCode": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "labelUri": {
+      "type": "string"
+    },
+    "lastEventVersion": {
+      "type": "integer"
+    }
+  }
+}

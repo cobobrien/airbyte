@@ -28,10 +28,13 @@ class CustomAuth:
 
 class BrightpearlStream(HttpStream, ABC):
 
+    batch_size = 200
+    cursor_field = None
 
     def __init__(self, authenticator, config: Dict):
         self.config = config
         self._authenticator = authenticator
+        self._session = requests.Session()
 
 
     @property
@@ -67,25 +70,40 @@ class BrightpearlStream(HttpStream, ABC):
                 return index
         raise ValueError("Column name not found")
 
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        """
-        TODO: Override this method to define how a response is parsed.
-        :return an iterable containing each record in the response
-        """
-        yield {}
+    def _yield_resource_items(self, response: dict, column_name: str) -> Iterable[Dict]:
+        groups = zip_longest(*[iter(response["response"]["results"])] * self.batch_size)
+        index_of_resource_id = self._find_index_of_column(items=response, column_name=column_name)
+        for it in groups:
+            yield [str(s[index_of_resource_id]) for s in it if s is not None]
+
+
+    def request_params(
+        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> MutableMapping[str, Any]:
+
+        params: dict = {}
+
+        if self.cursor_field:
+            start_date = stream_slice[self.cursor_field]
+            end_date = start_date + timedelta(days=1)
+            params.update({self.cursor_field : f"{self._to_query_param_date(start_date)}/{self._to_query_param_date(end_date)}"})
+
+        if next_page_token:
+            params.update(**next_page_token)
+        payload_str = urllib.parse.urlencode(params, safe='/')
+
+        return payload_str
 
 
 
 class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
 
     state_checkpoint_interval = 1000
-    batch_size = 200
 
     def __init__(self, authenticator, start_date: datetime, config, **kwargs):
         super().__init__(authenticator=authenticator, config=config)
         self.start_date = start_date
         self._cursor_value = start_date
-        self._session = requests.Session()
 
     def path(self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None,
              next_page_token: Mapping[str, Any] = None) -> str:
@@ -104,6 +122,7 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
 
     def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
         for record in super().read_records(*args, **kwargs):
+            self.logger.info(f"Record: {record}")
             latest_record_date = datetime.fromisoformat(record[-1][self.cursor_field])
             self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
             yield from record
@@ -123,25 +142,6 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
         start_date = datetime.fromisoformat(stream_state[self.cursor_field]) if stream_state and self.cursor_field in stream_state else self.start_date
         return self._chunk_date_range(start_date)
 
-    def _yield_resource_items(self, response: dict, column_name: str) -> Iterable[Dict]:
-        groups = zip_longest(*[iter(response["response"]["results"])] * self.batch_size)
-        index_of_order_id = self._find_index_of_column(items=response, column_name=column_name)
-        for it in groups:
-            yield [str(s[index_of_order_id]) for s in it if s is not None]
-
-
-    def request_params(
-        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
-    ) -> MutableMapping[str, Any]:
-
-        start_date = stream_slice[self.cursor_field]
-        end_date = start_date + timedelta(days=1)
-        params = {self.cursor_field : f"{self._to_query_param_date(start_date)}/{self._to_query_param_date(end_date)}"}
-        if next_page_token:
-            params.update(**next_page_token)
-        payload_str = urllib.parse.urlencode(params, safe='/')
-
-        return payload_str
 
 
 class Orders(IncrementalBrightpearlStream):
@@ -182,6 +182,169 @@ class Products(IncrementalBrightpearlStream):
             yield product_detail_response.json()["response"]
 
 
+
+class GoodsOut(IncrementalBrightpearlStream):
+    primary_key = "id"
+    cursor_field = "createdOn"
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"warehouse-service/goods-note/goods-out-search"
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for product_type_ids in self._yield_resource_items(response.json(), column_name="goodsOutNoteId"):
+
+            req = self._create_prepared_request(f"{self.url_base}warehouse-service/order/*/goods-note/goods-out/{','.join(product_type_ids)}",
+                                                headers=self.authenticator.get_auth_header())
+            goods_out_detail_response = self._send_request(req, {})
+            results = []
+            response = goods_out_detail_response.json()["response"]
+            for key in response.keys():
+                results.append({**{"id": int(key)}, **response[key]})
+            yield results
+
+class StockCorrections(IncrementalBrightpearlStream):
+    primary_key = "id"
+    cursor_field = "updatedOn"
+
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"warehouse-service/goods-movement-search"
+
+
+    def request_params(
+        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> MutableMapping[str, Any]:
+        params: str = super().request_params(stream_state, stream_slice, next_page_token)
+        return f"{params}&goodsNoteTypeCode=SC"
+
+
+    def _yield_resource_items(self, response: dict, column_name1: str, column_name2: str, column_name3: str) -> Iterable[Dict]:
+        index_of_resource_id1 = self._find_index_of_column(items=response, column_name=column_name1)
+        index_of_resource_id2 = self._find_index_of_column(items=response, column_name=column_name2)
+        index_of_resource_id3 = self._find_index_of_column(items=response, column_name=column_name3)
+        for result in response["response"]["results"]:
+            yield (result[index_of_resource_id1],result[index_of_resource_id2], result[index_of_resource_id3])
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        self.logger.info(f"RESPONSE: {response.request.url}")
+        for (warehouseId, goodsNoteId, updatedOn) in self._yield_resource_items(response.json(), column_name1="warehouseId", column_name2="goodsNoteId", column_name3="updatedOn"):
+
+            req = self._create_prepared_request(f"{self.url_base}warehouse-service/warehouse/{str(warehouseId)}/stock-correction/{str(goodsNoteId)}",
+                                                headers=self.authenticator.get_auth_header())
+
+            stock_correction_detail_response = self._send_request(req, {})
+            response = {"updatedOn": updatedOn}
+            response.update(stock_correction_detail_response.json()["response"][0])
+            # self.logger.info(f"Correction: {stock_correction_detail_response.json()}")
+            yield [response]
+
+
+class Brands(BrightpearlStream):
+    primary_key = "id"
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"product-service/brand-search"
+
+    def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
+        for record in super().read_records(*args, **kwargs):
+            yield from record
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for brand_ids in self._yield_resource_items(response.json(), column_name="brandId"):
+
+            req = self._create_prepared_request(f"{self.url_base}product-service/brand/{','.join(brand_ids)}",
+                                                headers=self.authenticator.get_auth_header())
+            brand_detail_response = self._send_request(req, {})
+            yield brand_detail_response.json()["response"]
+
+
+class ProductType(BrightpearlStream):
+    primary_key = "id"
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"product-service/product-type-search"
+
+    def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
+        for record in super().read_records(*args, **kwargs):
+            yield from record
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for product_type_ids in self._yield_resource_items(response.json(), column_name="id"):
+
+            req = self._create_prepared_request(f"{self.url_base}product-service/product-type/{','.join(product_type_ids)}",
+                                                headers=self.authenticator.get_auth_header())
+            product_type_detail_response = self._send_request(req, {})
+            yield product_type_detail_response.json()["response"]
+
+
+class ProductAvailability(BrightpearlStream):
+    primary_key = "id"
+    http_method = "OPTIONS"
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"product-service/product"
+
+    def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
+        pass
+
+    def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
+        for record in super().read_records(*args, **kwargs):
+            yield from record
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        self.http_method = "GET"
+        for uri in response.json()["response"]["getUris"]:
+            req = self._create_prepared_request(f"{self.url_base}warehouse-service/{str(uri).replace('/product/', '/product-availability/')}",
+                                                headers=self.authenticator.get_auth_header())
+            product_availability_detail_response = self._send_request(req, {})
+            results = []
+            response = product_availability_detail_response.json()["response"]
+            for key in response.keys():
+                results.append({**{"id": key}, **response[key]})
+            yield results
+
+
+class Warehouses(BrightpearlStream):
+    primary_key = "id"
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"warehouse-service/warehouse-search"
+
+    def request_params(
+        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> MutableMapping[str, Any]:
+        params: str = super().request_params(stream_state, stream_slice, next_page_token)
+        return f"{params}&{self.primary_key}.ASC" if params else f"sort={self.primary_key}.ASC"
+
+    def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
+        for record in super().read_records(*args, **kwargs):
+            yield from record
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for product_type_ids in self._yield_resource_items(response.json(), column_name="id"):
+            req = self._create_prepared_request(f"{self.url_base}warehouse-service/warehouse/{','.join(product_type_ids)}",
+                                                headers=self.authenticator.get_auth_header())
+            product_type_detail_response = self._send_request(req, {})
+            yield product_type_detail_response.json()["response"]
+
 # Source
 class SourceBrightpearl(AbstractSource):
     def check_connection(self, logger, config) -> Tuple[bool, any]:
@@ -193,16 +356,18 @@ class SourceBrightpearl(AbstractSource):
             return False, e
 
     def streams(self, config: Mapping[str, Any]) -> List[Stream]:
-        """
-        TODO: Replace the streams below with your own streams.
 
-        :param config: A Mapping of the user input configuration as defined in the connector spec.
-        """
         auth = CustomAuth(config=config)
         start_date = datetime.fromisoformat(config['start_date'])
 
-        orders = Orders(authenticator=auth, start_date=start_date, config=config)
-        products = Products(authenticator=auth, start_date=start_date, config=config)
 
-        # TODO remove the authenticator if not required.
-        return [orders, products]
+        return [
+            # Orders(authenticator=auth, start_date=start_date, config=config),
+            # Products(authenticator=auth, start_date=start_date, config=config),
+            # Brands(authenticator=auth, config=config),
+            # ProductType(authenticator=auth, config=config),
+            # ProductAvailability(authenticator=auth, config=config),
+            # GoodsOut(authenticator=auth, start_date=start_date, config=config),
+            # Warehouses(authenticator=auth, config=config),
+            StockCorrections(authenticator=auth, start_date=start_date, config=config)
+        ]

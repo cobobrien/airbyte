@@ -14,7 +14,7 @@ from airbyte_cdk.sources.streams import IncrementalMixin, Stream
 from airbyte_cdk.sources.streams.http import HttpStream
 
 
-class CustomAuth:
+class BrightpearlAuth:
     def __init__(self, config):
         self.config = config
 
@@ -29,6 +29,8 @@ class BrightpearlStream(HttpStream, ABC):
 
     batch_size = 200
     cursor_field = None
+    column_name = "id"
+    url_detail = ""
 
     def __init__(self, authenticator, config: Dict):
         self.config = config
@@ -61,6 +63,7 @@ class BrightpearlStream(HttpStream, ABC):
 
     def _find_index_of_column(self, items: dict, column_name: str) -> int:
         for index, column in enumerate(items["response"]["metaData"]["columns"]):
+            self.logger.info(f"column: {column}")
             if column["name"] == column_name:
                 return index
         raise ValueError("Column name not found")
@@ -87,6 +90,15 @@ class BrightpearlStream(HttpStream, ABC):
         payload_str = urllib.parse.urlencode(params, safe="/")
 
         return payload_str
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for ids in self._yield_resource_items(response.json(), column_name=self.column_name):
+
+            req = self._create_prepared_request(
+                f"{self.url_base}{self.url_detail}{','.join(ids)}", headers=self.authenticator.get_auth_header()
+            )
+            detail_response = self._send_request(req, {})
+            yield detail_response.json()["response"]
 
 
 class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
@@ -146,21 +158,14 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
 class Orders(IncrementalBrightpearlStream):
     primary_key = "id"
     cursor_field = "updatedOn"
+    column_name = "orderId"
+    url_detail = "order-service/order/"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
     ) -> str:
 
         return "order-service/order-search"
-
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        for order_ids in self._yield_resource_items(response.json(), column_name="orderId"):
-
-            req = self._create_prepared_request(
-                f"{self.url_base}order-service/order/{','.join(order_ids)}", headers=self.authenticator.get_auth_header()
-            )
-            order_detail_response = self._send_request(req, {})
-            yield order_detail_response.json()["response"]
 
 
 class GoodsInNotes(IncrementalBrightpearlStream):
@@ -219,22 +224,14 @@ class GoodsInNotes(IncrementalBrightpearlStream):
 class Products(IncrementalBrightpearlStream):
     primary_key = "id"
     cursor_field = "updatedOn"
+    column_name = "productId"
+    url_detail = "product-service/product/"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
     ) -> str:
 
         return "product-service/product-search"
-
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        self.logger.info(f"Request: {response.request.url}")
-        for product_ids in self._yield_resource_items(response.json(), column_name="productId"):
-
-            req = self._create_prepared_request(
-                f"{self.url_base}product-service/product/{','.join(product_ids)}", headers=self.authenticator.get_auth_header()
-            )
-            product_detail_response = self._send_request(req, {})
-            yield product_detail_response.json()["response"]
 
 
 class GoodsOutNotes(IncrementalBrightpearlStream):
@@ -303,6 +300,8 @@ class StockCorrections(IncrementalBrightpearlStream):
 
 class Brands(BrightpearlStream):
     primary_key = "id"
+    column_name = "brandId"
+    url_detail = "product-service/brand/"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -314,18 +313,11 @@ class Brands(BrightpearlStream):
         for record in super().read_records(*args, **kwargs):
             yield from record
 
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        for brand_ids in self._yield_resource_items(response.json(), column_name="brandId"):
-
-            req = self._create_prepared_request(
-                f"{self.url_base}product-service/brand/{','.join(brand_ids)}", headers=self.authenticator.get_auth_header()
-            )
-            brand_detail_response = self._send_request(req, {})
-            yield brand_detail_response.json()["response"]
-
 
 class ProductType(BrightpearlStream):
     primary_key = "id"
+    column_name = "id"
+    url_detail = "product-service/product-type/"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -336,15 +328,6 @@ class ProductType(BrightpearlStream):
     def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
         for record in super().read_records(*args, **kwargs):
             yield from record
-
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        for product_type_ids in self._yield_resource_items(response.json(), column_name="id"):
-
-            req = self._create_prepared_request(
-                f"{self.url_base}product-service/product-type/{','.join(product_type_ids)}", headers=self.authenticator.get_auth_header()
-            )
-            product_type_detail_response = self._send_request(req, {})
-            yield product_type_detail_response.json()["response"]
 
 
 class ProductAvailability(BrightpearlStream):
@@ -381,6 +364,8 @@ class ProductAvailability(BrightpearlStream):
 
 class Warehouses(BrightpearlStream):
     primary_key = "id"
+    column_name = "id"
+    url_detail = "warehouse-service/warehouse/"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -398,14 +383,6 @@ class Warehouses(BrightpearlStream):
         for record in super().read_records(*args, **kwargs):
             yield from record
 
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        for product_type_ids in self._yield_resource_items(response.json(), column_name="id"):
-            req = self._create_prepared_request(
-                f"{self.url_base}warehouse-service/warehouse/{','.join(product_type_ids)}", headers=self.authenticator.get_auth_header()
-            )
-            product_type_detail_response = self._send_request(req, {})
-            yield product_type_detail_response.json()["response"]
-
 
 # Source
 class SourceBrightpearl(AbstractSource):
@@ -422,7 +399,7 @@ class SourceBrightpearl(AbstractSource):
 
     def streams(self, config: Mapping[str, Any]) -> List[Stream]:
 
-        auth = CustomAuth(config=config)
+        auth = BrightpearlAuth(config=config)
         start_date = datetime.fromisoformat(config["start_date"])
 
         return [

@@ -2,21 +2,20 @@
 # Copyright (c) 2021 Airbyte, Inc., all rights reserved.
 #
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from source_brightpearl.source import SourceBrightpearl
 
 
-def test_check_connection(mocker):
+@patch("requests.get")
+def test_check_connection(config):
     source = SourceBrightpearl()
     logger_mock, config_mock = MagicMock(), MagicMock()
     assert source.check_connection(logger_mock, config_mock) == (True, None)
 
 
-def test_streams(mocker):
+def test_streams(config):
     source = SourceBrightpearl()
-    config_mock = MagicMock()
-    streams = source.streams(config_mock)
-    # TODO: replace this with your streams number
-    expected_streams_number = 2
+    streams = source.streams(config)
+    expected_streams_number = 9
     assert len(streams) == expected_streams_number

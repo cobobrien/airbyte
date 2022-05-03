@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Airbyte, Inc., all rights reserved.
 #
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from unittest.mock import MagicMock
 
 from airbyte_cdk.models import SyncMode

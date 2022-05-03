@@ -1,0 +1,90 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": ["null", "integer"]
+    },
+    "goodsNoteId": {
+      "type": ["null", "integer"]
+    },
+    "orderId": {
+      "type": ["null", "integer"]
+    },
+    "transfer": {
+      "type": ["null", "boolean"]
+    },
+    "goodsMoved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": ["null", "integer"]
+          },
+          "purchaseOrderRowId": {
+            "type": ["null", "integer"]
+          },
+          "quantity": {
+            "type": ["null", "integer"]
+          },
+          "warehouseId": {
+            "type": ["null", "integer"]
+          },
+          "destinationLocationId": {
+            "type": ["null", "integer"]
+          },
+          "goodsNoteID": {
+            "type": ["null", "integer"]
+          },
+          "batchGoodsNoteId": {
+            "type": ["null", "integer"]
+          },
+          "productValue":{
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": ["null", "string"]
+              },
+              "value": {
+                "type": ["null", "integer"]
+              }
+            }
+          },
+          "cleared": {
+            "type": ["null", "boolean"]
+          },
+          "valueConfirmed": {
+            "type": ["null", "boolean"]
+          },
+          "allocated": {
+            "type": ["null", "boolean"]
+          },
+          "quarantine": {
+            "type": ["null", "boolean"]
+          },
+          "createdOn": {
+            "type": ["null", "string"]
+          },
+          "createdBy": {
+            "type": ["null", "integer"]
+          },
+          "updatedOn": {
+            "type": ["null", "string"]
+          },
+          "updatedBy": {
+            "type": ["null", "integer"]
+          }
+        }
+      }
+    },
+    "receivedOn": {
+      "type": ["null", "string"]
+    },
+    "goodsNoteStatus": {
+      "type": ["null", "string"]
+    },
+    "createdBy": {
+      "type": ["null", "integer"]
+    }
+  }
+}

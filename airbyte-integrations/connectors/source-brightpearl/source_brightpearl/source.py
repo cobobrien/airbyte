@@ -43,7 +43,6 @@ class BrightpearlStream(HttpStream, ABC):
 
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
-
         response = response.json()["response"]["metaData"]
         if response["morePagesAvailable"]:
             return {"firstResult": response["lastResult"] + 1}
@@ -122,7 +121,6 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
 
     def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
         for record in super().read_records(*args, **kwargs):
-            self.logger.info(f"Record: {record}")
             latest_record_date = datetime.fromisoformat(record[-1][self.cursor_field])
             self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
             yield from record
@@ -163,6 +161,56 @@ class Orders(IncrementalBrightpearlStream):
             order_detail_response = self._send_request(req, {})
             yield order_detail_response.json()["response"]
 
+class GoodsInNotes(IncrementalBrightpearlStream):
+    primary_key = "batchId"
+    cursor_field = "receivedDate"
+    batch_ids = set()
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+
+        return f"warehouse-service/goods-in-search"
+
+    def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
+        """
+        Override required because the receivedDate query param corresponds to the receivedOn in the response
+        """
+        for record in BrightpearlStream.read_records(self, *args, **kwargs):
+            if record:
+                latest_record_date = datetime.fromisoformat(record[-1]["receivedOn"])
+                self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
+            yield from record
+
+    def request_params(
+        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> MutableMapping[str, Any]:
+        params: str = super().request_params(stream_state, stream_slice, next_page_token)
+        return f"{params}&sort={self.primary_key}.ASC" if params else f"sort={self.primary_key}.ASC"
+
+    def prepare_batch_id(self, ids: [int]):
+        """
+        Required to remove duplicate batch_ids from being queried. Ascending list ordered must be maintained
+        """
+        prepped_list = list(dict.fromkeys(ids))
+        return [x for x in prepped_list if x not in self.batch_ids]
+
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        for batch_ids in self._yield_resource_items(response.json(), column_name="batchId"):
+            ids = self.prepare_batch_id(batch_ids)
+            if not ids:
+                yield []
+            req = self._create_prepared_request(f"{self.url_base}warehouse-service/order/*/goods-note/goods-in/{','.join(ids)}",
+                                                headers=self.authenticator.get_auth_header())
+
+            self.batch_ids.update(batch_ids)
+            goods_in_notes_detail_response = self._send_request(req, {})
+            response = goods_in_notes_detail_response.json()["response"]
+            results = []
+            for key in response.keys():
+                results.append({**{"id": int(key)}, **response[key]})
+            yield results
+
 class Products(IncrementalBrightpearlStream):
     primary_key = "id"
     cursor_field = "updatedOn"
@@ -179,11 +227,13 @@ class Products(IncrementalBrightpearlStream):
             req = self._create_prepared_request(f"{self.url_base}product-service/product/{','.join(product_ids)}",
                                                 headers=self.authenticator.get_auth_header())
             product_detail_response = self._send_request(req, {})
-            yield product_detail_response.json()["response"]
+            results = []
+            response = product_detail_response.json()["response"]
+            for key in response.keys():
+                results.append({**{"id": int(key)}, **response[key]})
+            yield results
 
-
-
-class GoodsOut(IncrementalBrightpearlStream):
+class GoodsOutNotes(IncrementalBrightpearlStream):
     primary_key = "id"
     cursor_field = "createdOn"
 
@@ -209,7 +259,6 @@ class StockCorrections(IncrementalBrightpearlStream):
     primary_key = "id"
     cursor_field = "updatedOn"
 
-
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
     ) -> str:
@@ -232,7 +281,6 @@ class StockCorrections(IncrementalBrightpearlStream):
             yield (result[index_of_resource_id1],result[index_of_resource_id2], result[index_of_resource_id3])
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        self.logger.info(f"RESPONSE: {response.request.url}")
         for (warehouseId, goodsNoteId, updatedOn) in self._yield_resource_items(response.json(), column_name1="warehouseId", column_name2="goodsNoteId", column_name3="updatedOn"):
 
             req = self._create_prepared_request(f"{self.url_base}warehouse-service/warehouse/{str(warehouseId)}/stock-correction/{str(goodsNoteId)}",
@@ -241,7 +289,6 @@ class StockCorrections(IncrementalBrightpearlStream):
             stock_correction_detail_response = self._send_request(req, {})
             response = {"updatedOn": updatedOn}
             response.update(stock_correction_detail_response.json()["response"][0])
-            # self.logger.info(f"Correction: {stock_correction_detail_response.json()}")
             yield [response]
 
 
@@ -362,12 +409,13 @@ class SourceBrightpearl(AbstractSource):
 
 
         return [
-            # Orders(authenticator=auth, start_date=start_date, config=config),
-            # Products(authenticator=auth, start_date=start_date, config=config),
-            # Brands(authenticator=auth, config=config),
-            # ProductType(authenticator=auth, config=config),
-            # ProductAvailability(authenticator=auth, config=config),
-            # GoodsOut(authenticator=auth, start_date=start_date, config=config),
-            # Warehouses(authenticator=auth, config=config),
-            StockCorrections(authenticator=auth, start_date=start_date, config=config)
+            Orders(authenticator=auth, start_date=start_date, config=config),
+            Products(authenticator=auth, start_date=start_date, config=config),
+            Brands(authenticator=auth, config=config),
+            ProductType(authenticator=auth, config=config),
+            ProductAvailability(authenticator=auth, config=config),
+            GoodsOutNotes(authenticator=auth, start_date=start_date, config=config),
+            Warehouses(authenticator=auth, config=config),
+            StockCorrections(authenticator=auth, start_date=start_date, config=config),
+            GoodsInNotes(authenticator=auth, start_date=start_date, config=config)
         ]

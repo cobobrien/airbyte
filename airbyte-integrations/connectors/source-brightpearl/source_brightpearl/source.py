@@ -92,6 +92,7 @@ class BrightpearlStream(HttpStream, ABC):
 class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
 
     state_checkpoint_interval = 1000
+    cursor_field = "updatedOn"
 
     def __init__(self, authenticator, start_date: datetime, config, **kwargs):
         super().__init__(authenticator=authenticator, config=config)

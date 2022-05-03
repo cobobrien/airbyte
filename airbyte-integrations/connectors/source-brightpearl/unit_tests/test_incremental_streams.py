@@ -2,6 +2,8 @@
 # Copyright (c) 2021 Airbyte, Inc., all rights reserved.
 #
 
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock
 
 from airbyte_cdk.models import SyncMode
 from pytest import fixture
@@ -17,43 +19,41 @@ def patch_incremental_base_class(mocker):
 
 
 def test_cursor_field(patch_incremental_base_class):
-    stream = IncrementalBrightpearlStream()
-    # TODO: replace this with your expected cursor field
-    expected_cursor_field = []
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-03"))
+    expected_cursor_field = "updatedOn"
     assert stream.cursor_field == expected_cursor_field
 
 
 def test_get_updated_state(patch_incremental_base_class):
-    stream = IncrementalBrightpearlStream()
-    # TODO: replace this with your input parameters
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-03"))
     inputs = {"current_stream_state": None, "latest_record": None}
-    # TODO: replace this with your expected updated stream state
     expected_state = {}
     assert stream.get_updated_state(**inputs) == expected_state
 
 
 def test_stream_slices(patch_incremental_base_class):
-    stream = IncrementalBrightpearlStream()
-    # TODO: replace this with your input parameters
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-01"))
     inputs = {"sync_mode": SyncMode.incremental, "cursor_field": [], "stream_state": {}}
-    # TODO: replace this with your expected stream slices list
-    expected_stream_slice = [None]
+    expected_stream_slice = [
+        {"updatedOn": datetime.fromisoformat("2022-05-01")},
+        {"updatedOn": datetime.fromisoformat("2022-05-02")},
+        {"updatedOn": datetime.fromisoformat("2022-05-03")},
+    ]
     assert stream.stream_slices(**inputs) == expected_stream_slice
 
 
 def test_supports_incremental(patch_incremental_base_class, mocker):
     mocker.patch.object(IncrementalBrightpearlStream, "cursor_field", "dummy_field")
-    stream = IncrementalBrightpearlStream()
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-01"))
     assert stream.supports_incremental
 
 
 def test_source_defined_cursor(patch_incremental_base_class):
-    stream = IncrementalBrightpearlStream()
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-01"))
     assert stream.source_defined_cursor
 
 
 def test_stream_checkpoint_interval(patch_incremental_base_class):
-    stream = IncrementalBrightpearlStream()
-    # TODO: replace this with your expected checkpoint interval
-    expected_checkpoint_interval = None
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-01"))
+    expected_checkpoint_interval = 1000
     assert stream.state_checkpoint_interval == expected_checkpoint_interval

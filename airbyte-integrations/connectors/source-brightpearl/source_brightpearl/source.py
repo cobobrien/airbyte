@@ -409,7 +409,6 @@ class ProductAvailability(BrightpearlStream):
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         self.http_method = "GET"
         for uri in response.json()["response"]["getUris"]:
-            self.logger.debug(f"URI: {uri}")
             req = self._create_prepared_request(
                 f"{self.url_base}warehouse-service/{str(uri).replace('/product/', '/product-availability/')}",
                 headers=self.authenticator.get_auth_header(),

@@ -280,6 +280,7 @@ class TestBasicRead(BaseTest):
         """
         Check if data type and structure in records matches the one in json_schema of the stream in catalog
         """
+        # breakpoint()
         TestBasicRead._validate_records_structure(records, configured_catalog)
         bar = "-" * 80
         streams_errors = verify_records_schema(records, configured_catalog)

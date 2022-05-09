@@ -84,7 +84,29 @@
       "type": "integer"
     },
     "orderRows": {
-      "type": "string"
+      "type": ["array", "null"],
+      "items": {
+        "id":{
+          "type": ["integer", "null"]
+        },
+        "values": {
+          "type": ["array", "null"],
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "productId": {
+                "type": ["integer", "null"]
+              },
+              "quantity": {
+                "type": ["integer", "null"]
+              },
+              "locationId": {
+                "type": ["integer", "null"]
+              }
+            }
+          }
+        }
+      }
     },
     "sequence": {
       "type": "integer"

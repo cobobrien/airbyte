@@ -22,7 +22,42 @@
       }
     },
     "warehouses": {
-      "type": ["string", "null"]
+      "type": ["array", "null"],
+      "items": {
+        "type": ["object", "null"],
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "inStock": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "onHand": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "allocated": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "inTransit": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          }
+        }
+      }
     }
   }
 }

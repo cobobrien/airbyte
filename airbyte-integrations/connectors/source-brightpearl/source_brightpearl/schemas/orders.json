@@ -326,6 +326,130 @@
     },
     "isDropship": {
       "type": ["boolean", "null"]
+    },
+    "historicalOrder": {
+      "type": ["boolean", "null"]
+    },
+    "originalInvoiceDate": {
+      "type": ["string", "null"]
+    },
+    "orderWeighting": {
+      "type": ["integer", "null"]
+    },
+    "orderRows": {
+      "type": ["array", "null"],
+      "items": {
+        "type": ["object", "null"],
+        "properties": {
+          "id": {
+            "type": ["integer", "null"]
+          },
+          "orderRowSequence": {
+            "type": ["string", "null"]
+          },
+          "productId": {
+            "type": ["integer", "null"]
+          },
+          "productName": {
+            "type": ["string", "null"]
+          },
+          "productSku": {
+            "type": ["string", "null"]
+          },
+          "quantity": {
+            "type": ["object", "null"],
+            "properties": {
+              "magnitude": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "itemCost": {
+            "type": ["object", "null"],
+            "properties": {
+              "currencyCode": {
+                "type": ["string", "null"]
+              },
+              "value": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "productPrice": {
+            "type": ["object", "null"],
+            "properties": {
+              "currencyCode": {
+                "type": ["string", "null"]
+              },
+              "value": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "discountPercentage": {
+            "type": ["string", "null"]
+          },
+          "rowValue": {
+            "type": ["object", "null"],
+            "properties": {
+              "taxRate": {
+                "type": ["string", "null"]
+              },
+              "taxCode": {
+                "type": ["string", "null"]
+              },
+              "taxCalculator": {
+                "type": ["string", "null"]
+              },
+              "rowNet": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "currencyCode": {
+                      "type": ["string", "null"]
+                    },
+                    "value": {
+                      "type": ["string", "null"]
+                    }
+                  }
+              },
+              "rowTax": {
+                "type": ["object", "null"],
+                "properties": {
+                  "currencyCode": {
+                    "type": ["string", "null"]
+                  },
+                  "value": {
+                    "type": ["string", "null"]
+                  }
+                }
+              },
+              "taxClassId": {
+                "type": ["integer", "null"]
+              }
+            }
+          },
+          "nominalCode": {
+            "type": ["string", "null"]
+          },
+          "composition": {
+            "type": ["object", "null"],
+            "properties": {
+              "currencyCode": {
+                "type": ["boolean", "null"]
+              },
+              "value": {
+                "type": ["boolean", "null"]
+              },
+              "parentOrderRowId": {
+                "type": ["integer", "null"]
+              }
+            }
+          },
+          "clonedFromId": {
+            "type": ["integer", "null"]
+          }
+        }
+      }
     }
   }
 }

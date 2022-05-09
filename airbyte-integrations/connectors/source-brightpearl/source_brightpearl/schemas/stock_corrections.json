@@ -43,15 +43,12 @@
                 "type": ["null", "string"]
               },
               "value": {
-                "type": ["null", "integer"]
+                "type": ["null", "number"]
               }
             }
           }
         }
       }
-    },
-    "warehouses": {
-      "type": ["string", "null"]
     }
   }
 }

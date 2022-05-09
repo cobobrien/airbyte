@@ -31,6 +31,7 @@ class BrightpearlStream(HttpStream, ABC):
     batch_size = 200
     column_name = "id"
     url_detail = ""
+    key_to_flatten = None
 
     def __init__(self, authenticator, config: Dict):
         self.config = config
@@ -62,6 +63,57 @@ class BrightpearlStream(HttpStream, ABC):
         from_date = stream_slice[self.cursor_field]
         to_date = from_date + timedelta(days=1)
         return f"{from_date.isoformat()}/{to_date.isoformat()}"
+
+    def _flatten_keys(self, response: dict):
+
+        """
+        The Brightpearl uses IDs as keys rather than values in some cases, making it impossible to create a schema as the keys are dynamic.
+        This function modifies the response object to be conform to normal conventions.
+
+        "warehouses": {
+            "2": {
+                "defaultLocationId": 0,
+                "overflowLocationId": 0,
+                "reorderLevel": 0,
+                "reorderQuantity": 0
+            },
+            "3": {
+                "defaultLocationId": 0,
+                "overflowLocationId": 0,
+                "reorderLevel": 0,
+                "reorderQuantity": 0
+            },
+            {...}
+        }
+
+        Becomes:
+
+        "warehouses": [
+            {
+                "id": 2
+                "defaultLocationId": 0,
+                "overflowLocationId": 0,
+                "reorderLevel": 0,
+                "reorderQuantity": 0
+            },
+            {
+                "id": 3
+                "defaultLocationId": 0,
+                "overflowLocationId": 0,
+                "reorderLevel": 0,
+                "reorderQuantity": 0
+            },
+            {...}
+        ]
+
+        """
+        response_body = response["response"]
+        for index, item in enumerate(response_body):
+            results = []
+            for key in item[self.key_to_flatten].keys():
+                results.append({**{"id": int(key)}, **item[self.key_to_flatten][key]})
+            response["response"][index][self.key_to_flatten] = results
+        return response
 
     def _find_index_of_column(self, items: dict, column_name: str) -> int:
         for index, column in enumerate(items["response"]["metaData"]["columns"]):
@@ -96,8 +148,10 @@ class BrightpearlStream(HttpStream, ABC):
             req = self._create_prepared_request(
                 f"{self.url_base}{self.url_detail}{','.join(ids)}", headers=self.authenticator.get_auth_header()
             )
-            detail_response = self._send_request(req, {})
-            yield detail_response.json()["response"]
+            response = self._send_request(req, {}).json()
+            if self.key_to_flatten:
+                response = self._flatten_keys(response=response)
+            yield response["response"]
 
 
 class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
@@ -159,6 +213,7 @@ class Orders(IncrementalBrightpearlStream):
     cursor_field = "updatedOn"
     column_name = "orderId"
     url_detail = "order-service/order/"
+    key_to_flatten = "orderRows"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -223,6 +278,7 @@ class Products(IncrementalBrightpearlStream):
     cursor_field = "updatedOn"
     column_name = "productId"
     url_detail = "product-service/product/"
+    key_to_flatten = "warehouses"
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -249,9 +305,18 @@ class GoodsOutNotes(IncrementalBrightpearlStream):
                 headers=self.authenticator.get_auth_header(),
             )
             goods_out_detail_response = self._send_request(req, {})
+
+            """
+            Not using the _flatten_keys functionality here as we need some nested flattening and it would be inefficient
+            to iterate through the response so twice.
+            """
             results = []
             response = goods_out_detail_response.json()["response"]
             for key in response.keys():
+                order_rows = []
+                for order_row in response[key]["orderRows"].keys():
+                    order_rows.append({**{"id": int(order_row)}, **{"values": response[key]["orderRows"][order_row]}})
+                response[key]["orderRows"] = order_rows
                 results.append({**{"id": int(key)}, **response[key]})
             yield results
 
@@ -344,6 +409,7 @@ class ProductAvailability(BrightpearlStream):
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         self.http_method = "GET"
         for uri in response.json()["response"]["getUris"]:
+            self.logger.debug(f"URI: {uri}")
             req = self._create_prepared_request(
                 f"{self.url_base}warehouse-service/{str(uri).replace('/product/', '/product-availability/')}",
                 headers=self.authenticator.get_auth_header(),
@@ -371,9 +437,18 @@ class ProductAvailability(BrightpearlStream):
                 else:
                     raise
 
+            """
+            Not using the _flatten_keys functionality here as we need some nested flattening and it would be inefficient
+            to iterate through the response so twice.
+            """
+
             results = []
             for key in response.keys():
-                results.append({**{"id": key}, **response[key]})
+                warehouses = []
+                for warehouse in response[key]["warehouses"].keys():
+                    warehouses.append({**{"id": int(warehouse)}, **response[key]["warehouses"][warehouse]})
+                response[key]["warehouses"] = warehouses
+                results.append({**{"id": int(key)}, **response[key]})
             yield results
 
 

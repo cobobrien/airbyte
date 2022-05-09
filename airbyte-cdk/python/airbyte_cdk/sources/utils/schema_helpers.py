@@ -156,7 +156,6 @@ def check_config_against_spec_or_exit(config: Mapping[str, Any], spec: Connector
     """
     spec_schema = spec.connectionSpecification
     try:
-        print("HERHERHEHRERUEFHERUFHEFUHFUH")
         validate(instance=config, schema=spec_schema)
     except ValidationError as validation_error:
         raise Exception("Config validation error: " + validation_error.message) from None

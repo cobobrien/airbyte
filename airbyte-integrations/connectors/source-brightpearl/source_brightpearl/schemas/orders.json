@@ -30,7 +30,9 @@
     "tax": {
       "type": "object",
       "properties": {
-        "errors": ["null", "array"]
+        "errors": {
+          "type": ["null", "array"]
+        }
       }
     },
     "acknowledged": {

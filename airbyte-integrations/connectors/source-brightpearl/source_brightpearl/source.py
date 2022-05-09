@@ -7,12 +7,12 @@ from abc import ABC
 from datetime import datetime, timedelta
 from itertools import zip_longest
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Tuple
-from requests import HTTPError
 
 import requests
 from airbyte_cdk.sources import AbstractSource
 from airbyte_cdk.sources.streams import IncrementalMixin, Stream
 from airbyte_cdk.sources.streams.http import HttpStream
+from requests import HTTPError
 
 
 class BrightpearlAuth:
@@ -82,8 +82,6 @@ class BrightpearlStream(HttpStream, ABC):
         params: dict = {}
 
         if issubclass(type(self), IncrementalMixin):
-            start_date = stream_slice[self.cursor_field]
-            end_date = start_date - timedelta(days=1)
             params.update({self.cursor_field: self._date_range(stream_slice)})
 
         if next_page_token:
@@ -210,7 +208,7 @@ class GoodsInNotes(IncrementalBrightpearlStream):
             results = []
 
             """
-             Two nasty workarounds here, firstly, flattening the response as the GoodsInNotes IDs are used as keys. 
+             Two nasty workarounds here, firstly, flattening the response as the GoodsInNotes IDs are used as keys.
              Secondly, the response contains the key `receivedOn` even though the query param is `receivedDate`. This messes up
              the logic around cursor_fields
             """
@@ -355,10 +353,11 @@ class ProductAvailability(BrightpearlStream):
                 product_availability_detail_response = self._send_request(req, {})
                 response = product_availability_detail_response.json()["response"]
             except HTTPError as e:
+
                 def is_non_stock_tracked_products_exception(exception: HTTPError):
                     is_non_stock_exception = filter(
                         lambda x: x == {"code": "WHSC-097", "message": "These are non stock tracked products."}
-                                  or x == {"code": "WHSC-097", "message": "This is a non stock tracked product."},
+                        or x == {"code": "WHSC-097", "message": "This is a non stock tracked product."},
                         exception.response.json().get("errors", []),
                     )
                     return any(is_non_stock_exception) and exception.response.status_code == 400

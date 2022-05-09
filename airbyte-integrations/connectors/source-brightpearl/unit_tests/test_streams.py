@@ -35,12 +35,19 @@ def test_next_page_token(patch_base_class, requests_mock):
 
 @patch("source_brightpearl.source.BrightpearlStream._send_request")
 def test_parse_response(_send_request, patch_base_class, requests_mock):
-    requests_mock.get("https://dummy", json={
-        "response": {
-            "results": [[1, 2, 3], [1, 2, 3]],
-            "metaData": {"morePagesAvailable": True, "lastResult": 10, "columns": [{"name": "id"}, {"name": "test"}, {"name": "test2"}]},
-        }
-    })
+    requests_mock.get(
+        "https://dummy",
+        json={
+            "response": {
+                "results": [[1, 2, 3], [1, 2, 3]],
+                "metaData": {
+                    "morePagesAvailable": True,
+                    "lastResult": 10,
+                    "columns": [{"name": "id"}, {"name": "test"}, {"name": "test2"}],
+                },
+            }
+        },
+    )
     mock_response = MagicMock()
     mock_response.json.return_value = {"response": [{"id": 1, "name": "abc"}]}
     _send_request.return_value = mock_response
@@ -81,9 +88,8 @@ def test_should_retry(patch_base_class, http_status, should_retry):
 
 
 def test_backoff_time(patch_base_class, requests_mock):
-    response_mock = MagicMock()
     requests_mock.get("https://dummy", json={}, headers={"brightpearl-next-throttle-period": "56565"})
     inputs = {"response": requests.get("https://dummy")}
     stream = BrightpearlStream(config=MagicMock(), authenticator=MagicMock())
-    expected_backoff_time = 56565/1000
+    expected_backoff_time = 56565 / 1000
     assert stream.backoff_time(**inputs) == expected_backoff_time

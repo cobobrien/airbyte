@@ -77,7 +77,7 @@
         }
       }
     },
-    "receivedOn": {
+    "receivedDate": {
       "type": ["null", "string"]
     },
     "goodsNoteStatus": {

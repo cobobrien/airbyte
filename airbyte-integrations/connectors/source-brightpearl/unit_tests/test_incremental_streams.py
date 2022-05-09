@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Airbyte, Inc., all rights reserved.
 #
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
 from airbyte_cdk.models import SyncMode
@@ -32,12 +32,13 @@ def test_get_updated_state(patch_incremental_base_class):
 
 
 def test_stream_slices(patch_incremental_base_class):
-    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=datetime.fromisoformat("2022-05-01"))
+    now = datetime.now()
+    stream = IncrementalBrightpearlStream(config=MagicMock(), authenticator=MagicMock(), start_date=now - timedelta(days=2))
     inputs = {"sync_mode": SyncMode.incremental, "cursor_field": [], "stream_state": {}}
     expected_stream_slice = [
-        {"updatedOn": datetime.fromisoformat("2022-05-01")},
-        {"updatedOn": datetime.fromisoformat("2022-05-02")},
-        {"updatedOn": datetime.fromisoformat("2022-05-03")},
+        {"updatedOn": now - timedelta(days=2)},
+        {"updatedOn": now - timedelta(days=1)},
+        {"updatedOn": now},
     ]
     assert stream.stream_slices(**inputs) == expected_stream_slice
 

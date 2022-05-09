@@ -7,6 +7,7 @@ from abc import ABC
 from datetime import datetime, timedelta
 from itertools import zip_longest
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Tuple
+from requests import HTTPError
 
 import requests
 from airbyte_cdk.sources import AbstractSource
@@ -28,7 +29,6 @@ class BrightpearlAuth:
 class BrightpearlStream(HttpStream, ABC):
 
     batch_size = 200
-    cursor_field = None
     column_name = "id"
     url_detail = ""
 
@@ -58,12 +58,13 @@ class BrightpearlStream(HttpStream, ABC):
         else:
             return 5
 
-    def _to_query_param_date(self, datetime: datetime):
-        return f"{datetime.year}-{datetime.month}-{datetime.day}"
+    def _date_range(self, stream_slice: Mapping[str, any] = None):
+        from_date = stream_slice[self.cursor_field]
+        to_date = from_date + timedelta(days=1)
+        return f"{from_date.isoformat()}/{to_date.isoformat()}"
 
     def _find_index_of_column(self, items: dict, column_name: str) -> int:
         for index, column in enumerate(items["response"]["metaData"]["columns"]):
-            self.logger.info(f"column: {column}")
             if column["name"] == column_name:
                 return index
         raise ValueError("Column name not found")
@@ -80,10 +81,10 @@ class BrightpearlStream(HttpStream, ABC):
 
         params: dict = {}
 
-        if self.cursor_field:
+        if issubclass(type(self), IncrementalMixin):
             start_date = stream_slice[self.cursor_field]
-            end_date = start_date + timedelta(days=1)
-            params.update({self.cursor_field: f"{self._to_query_param_date(start_date)}/{self._to_query_param_date(end_date)}"})
+            end_date = start_date - timedelta(days=1)
+            params.update({self.cursor_field: self._date_range(stream_slice)})
 
         if next_page_token:
             params.update(**next_page_token)
@@ -169,7 +170,8 @@ class Orders(IncrementalBrightpearlStream):
 
 
 class GoodsInNotes(IncrementalBrightpearlStream):
-    primary_key = "batchId"
+    primary_key = "id"
+    sort_key = "batchId"
     cursor_field = "receivedDate"
     batch_ids = set()
 
@@ -179,21 +181,11 @@ class GoodsInNotes(IncrementalBrightpearlStream):
 
         return "warehouse-service/goods-in-search"
 
-    def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
-        """
-        Override required because the receivedDate query param corresponds to the receivedOn in the response
-        """
-        for record in BrightpearlStream.read_records(self, *args, **kwargs):
-            if record:
-                latest_record_date = datetime.fromisoformat(record[-1]["receivedOn"])
-                self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
-            yield from record
-
     def request_params(
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
     ) -> MutableMapping[str, Any]:
         params: str = super().request_params(stream_state, stream_slice, next_page_token)
-        return f"{params}&sort={self.primary_key}.ASC" if params else f"sort={self.primary_key}.ASC"
+        return f"{params}&sort={self.sort_key}.ASC" if params else f"sort={self.sort_key}.ASC"
 
     def prepare_batch_id(self, ids: [int]):
         """
@@ -216,7 +208,14 @@ class GoodsInNotes(IncrementalBrightpearlStream):
             goods_in_notes_detail_response = self._send_request(req, {})
             response = goods_in_notes_detail_response.json()["response"]
             results = []
+
+            """
+             Two nasty workarounds here, firstly, flattening the response as the GoodsInNotes IDs are used as keys. 
+             Secondly, the response contains the key `receivedOn` even though the query param is `receivedDate`. This messes up
+             the logic around cursor_fields
+            """
             for key in response.keys():
+                response[key]["receivedDate"] = response[key].pop("receivedOn")
                 results.append({**{"id": int(key)}, **response[key]})
             yield results
 
@@ -260,7 +259,7 @@ class GoodsOutNotes(IncrementalBrightpearlStream):
 
 
 class StockCorrections(IncrementalBrightpearlStream):
-    primary_key = "id"
+    primary_key = "goodsNoteId"
     cursor_field = "updatedOn"
 
     def path(
@@ -275,16 +274,13 @@ class StockCorrections(IncrementalBrightpearlStream):
         params: str = super().request_params(stream_state, stream_slice, next_page_token)
         return f"{params}&goodsNoteTypeCode=SC"
 
-    def _yield_resource_items(self, response: dict, column_name1: str, column_name2: str, column_name3: str) -> Iterable[Dict]:
-        index_of_resource_id1 = self._find_index_of_column(items=response, column_name=column_name1)
-        index_of_resource_id2 = self._find_index_of_column(items=response, column_name=column_name2)
-        index_of_resource_id3 = self._find_index_of_column(items=response, column_name=column_name3)
+    def _yield_resource_items(self, response: dict, column_names: [str]) -> Iterable[Dict]:
         for result in response["response"]["results"]:
-            yield (result[index_of_resource_id1], result[index_of_resource_id2], result[index_of_resource_id3])
+            yield (result[self._find_index_of_column(items=response, column_name=column_name)] for column_name in column_names)
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         for (warehouseId, goodsNoteId, updatedOn) in self._yield_resource_items(
-            response.json(), column_name1="warehouseId", column_name2="goodsNoteId", column_name3="updatedOn"
+            response.json(), column_names=["warehouseId", "goodsNoteId", "updatedOn"]
         ):
 
             req = self._create_prepared_request(
@@ -354,9 +350,29 @@ class ProductAvailability(BrightpearlStream):
                 f"{self.url_base}warehouse-service/{str(uri).replace('/product/', '/product-availability/')}",
                 headers=self.authenticator.get_auth_header(),
             )
-            product_availability_detail_response = self._send_request(req, {})
+
+            try:
+                product_availability_detail_response = self._send_request(req, {})
+                response = product_availability_detail_response.json()["response"]
+            except HTTPError as e:
+                def is_non_stock_tracked_products_exception(exception: HTTPError):
+                    is_non_stock_exception = filter(
+                        lambda x: x == {"code": "WHSC-097", "message": "These are non stock tracked products."}
+                                  or x == {"code": "WHSC-097", "message": "This is a non stock tracked product."},
+                        exception.response.json().get("errors", []),
+                    )
+                    return any(is_non_stock_exception) and exception.response.status_code == 400
+
+                if e.response.status_code == 404:
+                    self.logger.info(f"Product bundle for product id-set {uri} not found or not a bundle")
+                    response = {}
+                elif is_non_stock_tracked_products_exception(e):
+                    self.logger.info(f"Product bundle for product id-set {uri} non stock tracked product")
+                    response = {}
+                else:
+                    raise
+
             results = []
-            response = product_availability_detail_response.json()["response"]
             for key in response.keys():
                 results.append({**{"id": key}, **response[key]})
             yield results

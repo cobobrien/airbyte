@@ -1,3 +1,7 @@
 {
-  "todo-wrong-field": "this should be an incomplete config file, used in standard tests"
+  "datacenter": "ws-eu1",
+  "app_ref": "test-1",
+  "account_token": "test+test=",
+  "account_code": "test",
+  "start_date": "2022-05-03"
 }

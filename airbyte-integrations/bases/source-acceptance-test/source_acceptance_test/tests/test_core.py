@@ -158,7 +158,6 @@ class TestSpec(BaseTest):
 @pytest.mark.default_timeout(30)
 class TestConnection(BaseTest):
     def test_check(self, connector_config, inputs: ConnectionTestConfig, docker_runner: ConnectorRunner):
-        # breakpoint()
         if inputs.status == ConnectionTestConfig.Status.Succeed:
             output = docker_runner.call_check(config=connector_config)
             con_messages = filter_output(output, Type.CONNECTION_STATUS)

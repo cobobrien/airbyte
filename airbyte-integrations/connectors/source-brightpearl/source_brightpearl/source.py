@@ -129,7 +129,7 @@ class BrightpearlStream(HttpStream, ABC):
 
     def request_params(
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
-    ) -> MutableMapping[str, Any]:
+    ) -> str:
 
         params: dict = {}
 
@@ -138,6 +138,8 @@ class BrightpearlStream(HttpStream, ABC):
 
         if next_page_token:
             params.update(**next_page_token)
+
+        # Required as the `/` between the dates is URL encoded and breaks the request
         payload_str = urllib.parse.urlencode(params, safe="/")
 
         return payload_str
@@ -181,10 +183,11 @@ class IncrementalBrightpearlStream(BrightpearlStream, IncrementalMixin):
         self._cursor_value = datetime.fromisoformat(value[self.cursor_field])
 
     def read_records(self, *args, **kwargs) -> Iterable[Mapping[str, Any]]:
-        for record in super().read_records(*args, **kwargs):
-            latest_record_date = datetime.fromisoformat(record[-1][self.cursor_field])
-            self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
-            yield from record
+        for records in super().read_records(*args, **kwargs):
+            for record in records:
+                latest_record_date = datetime.fromisoformat(record[self.cursor_field])
+                self._cursor_value = max(self._cursor_value, latest_record_date.replace(tzinfo=None))
+            yield from records
 
     def _chunk_date_range(self, start_date: datetime) -> List[Mapping[str, Any]]:
         """
@@ -227,6 +230,19 @@ class GoodsInNotes(IncrementalBrightpearlStream):
     sort_key = "batchId"
     cursor_field = "receivedDate"
     batch_ids = set()
+
+    """
+    Due to inability to retrieve note ids from the goods-in-search response (See: https://api-docs.brightpearl.com/warehouse/goods-in-note/search.html),
+    We are using a workaround here, which involves the following:
+    1. Fetch results from goods-in-note SEARCH endpoint,
+    2. Extract all batchId values into a `set` as it contained multiple duplicates
+    (A potential explanation for the duplicates in the initial SEARCH endpoint's response is that one goods-in note can be issued for multiple products in a batch)
+    3. use the resulting set of unique ids to fetch from GET.
+    The results in response were an object of objects where:
+        all the keys in the outer objects were stringified integers that had a corresponding int among the params to the GET endpoint, and
+        all the inner obj had their goodsNoteId field equal to the key that inner object was stored at in the outer object
+        all the inner objects had their ["goodsMoved"][]["goodsNoteId"] equal to the above and to ["goodsMoved"][]["batchGoodsNoteId"]
+    """
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -308,7 +324,8 @@ class GoodsOutNotes(IncrementalBrightpearlStream):
 
             """
             Not using the _flatten_keys functionality here as we need some nested flattening and it would be inefficient
-            to iterate through the response so twice.
+            to iterate through the response so twice. Also differs from the `orderRows` in the Orders resource as here,
+            they are a nested arrays inside objects as opposed to nested objects inside objects
             """
             results = []
             response = goods_out_detail_response.json()["response"]

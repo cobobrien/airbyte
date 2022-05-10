@@ -1,0 +1,81 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "id": {
+      "type": "integer"
+    },
+    "typeCode": {
+      "type": "string"
+    },
+    "typeDescription": {
+      "type": "string"
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "addressId": {
+          "type": "integer"
+        }
+      }
+    },
+    "clickAndCollectEnabled": {
+      "type": "boolean"
+    },
+    "weeklyOperatingPeriods": {
+      "type": ["object", "null" ],
+      "properties": {
+        "timeZone": {
+          "type": "string"
+        },
+        "periods": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "picked": {
+                "type": "boolean"
+              },
+              "printed": {
+                "type": "boolean"
+              },
+              "pickedOn": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "collectionSla": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "integer"
+            },
+            "timeUnits": {
+               "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "externalTransferSlas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "warehouseId": {
+            "type": "integer"
+          },
+          "value": {
+            "type": "integer"
+          },
+          "timeUnits": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1258 @@
+{
+  "streams": [
+    {
+      "stream": {
+        "name": "products",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+              "id": {
+                "type": ["null", "integer"]
+              },
+              "brandId": {
+                "type": ["null", "integer"]
+              },
+              "collectionId": {
+                "type": ["null", "integer"]
+              },
+              "productTypeId": {
+                "type": ["null", "integer"]
+              },
+              "nominalCodeStock": {
+                "type": ["null", "string"]
+              },
+              "nominalCodePurchases": {
+                "type": ["null", "string"]
+              },
+              "nominalCodeSales": {
+                "type": ["null", "string"]
+              },
+              "seasonIds": {
+                "type": ["null", "array"],
+                "items": {
+                  "type": ["integer", "null"]
+                }
+              },
+              "identity": {
+                "type": ["null", "object"],
+                "properties": {
+                    "sku": {
+                      "type": ["null", "string"]
+                    },
+                    "isbn": {
+                      "type": ["null", "string"]
+                    },
+                    "ean": {
+                      "type": ["null", "string"]
+                    },
+                    "upc": {
+                      "type": ["null", "string"]
+                    },
+                    "barcode": {
+                      "type": ["null", "string"]
+                    }
+                }
+              },
+              "productGroupId": {
+                "type": ["null", "integer"]
+              },
+              "featured": {
+                "type": ["null", "boolean"]
+              },
+              "stock": {
+                "type": ["null", "object"],
+                "properties": {
+                  "stockTracked": {
+                    "type": ["null", "boolean"]
+                  },
+                  "weight": {
+                    "type": ["null", "object"],
+                    "properties": {
+                      "magnitude": {
+                        "type": ["null","number"]
+                      }
+                    }
+                  },
+                  "dimensions": {
+                    "type": ["null", "object"],
+                    "properties": {
+                      "length": {
+                        "type": ["null","number"]
+                      },
+                      "height": {
+                        "type": ["null","number"]
+                      },
+                      "width": {
+                        "type": ["null","number"]
+                      },
+                      "volume": {
+                        "type": ["null","number"]
+                      }
+                    }
+                  }
+                }
+              },
+              "financialDetails": {
+                "type": ["null", "object"],
+                "properties": {
+                  "taxCode": {
+                    "type": ["null", "object"],
+                     "properties": {
+                       "id": {
+                        "type": ["null","integer"]
+                      },
+                      "code": {
+                        "type": ["null","string"]
+                      }
+                     }
+                  }
+                }
+              },
+              "salesChannels": {
+                "type": ["null", "array"],
+                "items": {
+                  "type": ["null", "object"],
+                  "properties": {
+                    "salesChannelName": {
+                      "type": ["null","string"]
+                    },
+                    "productName": {
+                      "type": ["null","string"]
+                    },
+                    "productCondition": {
+                      "type": ["null","string"]
+                    },
+                    "categories": {
+                      "type": ["null", "array"],
+                      "items": {
+                        "type": ["null", "object"],
+                        "properties": {
+                          "categoryCode": {
+                            "type": ["null","string"]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "description": {
+                    "type": ["null", "object"],
+                    "properties": {
+                      "languageCode": {
+                        "type": ["null","string"]
+                      },
+                      "text": {
+                        "type": ["null","string"]
+                      },
+                      "format": {
+                        "type": ["null","string"]
+                      }
+                    }
+                  },
+                  "shortDescription": {
+                    "type": ["null", "object"],
+                    "properties": {
+                      "languageCode": {
+                        "type": ["null","string"]
+                      },
+                      "text": {
+                        "type": ["null","string"]
+                      },
+                      "format": {
+                        "type": ["null","string"]
+                      }
+                    }
+                  }
+                }
+              },
+              "composition": {
+                "type": ["null","object"],
+                "properties": {
+                  "bundle": {
+                    "type": ["null","boolean"]
+                  }
+                }
+              },
+              "variations": {
+                "type": ["null", "array"],
+                "items": {
+                  "properties": {
+                    "optionId": {
+                      "type": ["null","integer"]
+                    },
+                    "optionName": {
+                      "type": ["null","string"]
+                    },
+                    "optionValueId": {
+                      "type": ["null","integer"]
+                    },
+                    "optionValue": {
+                      "type": ["null","string"]
+                    }
+                  }
+                }
+              },
+              "warehouses": {
+                "type": ["null", "array"],
+                "items": {
+                  "type": ["null", "object"],
+                  "properties": {
+                    "id": {
+                      "type": ["null", "integer"]
+                    },
+                    "defaultLocationId": {
+                      "type": ["null", "integer"]
+                    },
+                    "overflowLocationId": {
+                      "type": ["null", "integer"]
+                    },
+                    "reorderLevel": {
+                      "type": ["null", "integer"]
+                    },
+                    "reorderQuantity": {
+                      "type": ["null", "integer"]
+                    }
+                  }
+                }
+              },
+              "createdOn": {
+                "type": ["null", "string"]
+              },
+              "updatedOn": {
+                "type": ["null", "string"]
+              },
+              "reporting": {
+                "type": ["null", "object"],
+                "properties": {
+                    "categoryId": {
+                      "type": ["null","integer"]
+                    },
+                    "subcategoryId": {
+                      "type": ["null","integer"]
+                    },
+                    "seasonId": {
+                      "type": ["null","integer"]
+                    }
+                }
+              },
+              "primarySupplierId": {
+                  "type": ["null","integer"]
+              },
+              "status": {
+                  "type": ["null","string"]
+              },
+              "salesPopupMessage": {
+                  "type": ["null","string"]
+              },
+              "version": {
+                  "type": ["null","integer"]
+              }
+            }
+        },
+        "supported_sync_modes": ["full_refresh", "incremental"]
+      },
+      "sync_mode": "incremental",
+      "destination_sync_mode": "append"
+    },
+    {
+      "stream": {
+        "name": "orders",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": ["null", "integer"]
+            },
+            "parentOrderId": {
+              "type": ["null", "integer"]
+            },
+            "orderTypeCode": {
+              "type": ["null", "string"]
+            },
+            "reference": {
+              "type": ["null", "string"]
+            },
+            "version": {
+              "type": ["null", "integer"]
+            },
+            "state": {
+              "type": "object",
+              "properties": {
+                "tax": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "tax": {
+              "type": "object",
+              "properties": {
+                "errors": {
+                  "type": ["null", "array"]
+                }
+              }
+            },
+            "acknowledged": {
+              "type": ["null", "integer"]
+            },
+            "orderStatus": {
+              "type": "object",
+              "properties": {
+                "orderStatusId": {
+                  "type": ["null", "integer"]
+                },
+                "name": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "orderPaymentStatus": {
+              "type": ["null", "string"]
+            },
+            "stockStatusCode": {
+              "type": ["null", "string"]
+            },
+            "allocationStatusCode": {
+              "type": ["null", "string"]
+            },
+            "shippingStatusCode": {
+              "type": ["null", "string"]
+            },
+            "placedOn": {
+              "type": ["null", "string"]
+            },
+            "createdOn": {
+              "type": ["null", "string"]
+            },
+            "updatedOn": {
+              "type": ["null", "string"]
+            },
+            "closedOn": {
+              "type": ["null", "string"]
+            },
+            "createdById": {
+              "type":  ["null", "integer"]
+            },
+            "priceListId": {
+              "type":  ["null", "integer"]
+            },
+            "priceModeCode": {
+              "type":  ["null", "string"]
+            },
+            "delivery": {
+              "type":  "object",
+              "properties":{
+                "deliveryDate": {
+                  "type": ["null", "string"]
+                },
+                "shippingMethodId": {
+                  "type":  ["null", "integer"]
+                }
+              }
+            },
+            "invoices": {
+              "type":  ["null", "array"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "invoiceReference": {
+                    "type": ["string", "null"]
+                  },
+                  "taxDate": {
+                    "type": ["string", "null"]
+                  },
+                  "dueDate": {
+                    "type": ["string", "null"]
+                  }
+                }
+              }
+            },
+            "currency": {
+              "type":  ["null", "object"],
+              "properties": {
+                  "accountingCurrencyCode": {
+                    "type": ["string", "null"]
+                  },
+                  "orderCurrencyCode": {
+                    "type": ["string", "null"]
+                  },
+                  "exchangeRate": {
+                    "type": ["string", "null"]
+                  },
+                  "fixedExchangeRate": {
+                    "type": ["null", "boolean"]
+                  }
+              }
+            },
+            "totalValue": {
+              "type":  ["null", "object"],
+              "properties": {
+                  "net": {
+                    "type": ["string", "null"]
+                  },
+                  "taxAmount": {
+                    "type": ["string", "null"]
+                  },
+                  "baseNet": {
+                    "type": ["string", "null"]
+                  },
+                  "baseTaxAmount": {
+                    "type": ["string", "null"]
+                  },
+                  "baseTotal": {
+                    "type": ["string", "null"]
+                  },
+                  "total": {
+                    "type": ["string", "null"]
+                  }
+              }
+            },
+            "assignment": {
+              "type":  ["null", "object"],
+              "properties": {
+                  "current": {
+                    "type":  ["null", "object"],
+                    "properties": {
+                      "staffOwnerContactId": {
+                        "type": ["integer", "null"]
+                      },
+                      "projectId": {
+                        "type": ["integer", "null"]
+                      },
+                      "channelId": {
+                        "type": ["integer", "null"]
+                      },
+                      "leadSourceId": {
+                        "type": ["integer", "null"]
+                      },
+                      "teamId": {
+                        "type": ["integer", "null"]
+                      }
+                    }
+                  }
+              }
+            },
+            "parties": {
+              "type":  ["null", "object"],
+              "properties": {
+                  "supplier": {
+                    "type":  ["null", "object"],
+                    "properties": {
+                      "contactId": {
+                        "type": ["integer", "null"]
+                      },
+                      "addressFullName": {
+                        "type": ["string", "null"]
+                      },
+                      "companyName": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine1": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine2": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine3": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine4": {
+                        "type": ["string", "null"]
+                      },
+                      "postalCode": {
+                        "type": ["string", "null"]
+                      },
+                      "country": {
+                        "type": ["string", "null"]
+                      },
+                      "countryIsoCode": {
+                        "type": ["string", "null"]
+                      },
+                      "countryIsoCode3": {
+                        "type": ["string", "null"]
+                      },
+                      "telephone": {
+                        "type": ["string", "null"]
+                      },
+                      "mobileTelephone": {
+                        "type": ["string", "null"]
+                      },
+                      "email": {
+                        "type": ["string", "null"]
+                      }
+                    }
+                  },
+                  "delivery": {
+                    "type":  ["null", "object"],
+                    "properties": {
+                      "addressFullName": {
+                        "type": ["string", "null"]
+                      },
+                      "companyName": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine1": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine2": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine3": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine4": {
+                        "type": ["string", "null"]
+                      },
+                      "postalCode": {
+                        "type": ["string", "null"]
+                      },
+                      "country": {
+                        "type": ["string", "null"]
+                      },
+                      "countryIsoCode": {
+                        "type": ["string", "null"]
+                      },
+                      "countryIsoCode3": {
+                        "type": ["string", "null"]
+                      },
+                      "telephone": {
+                        "type": ["string", "null"]
+                      },
+                      "mobileTelephone": {
+                        "type": ["string", "null"]
+                      },
+                      "email": {
+                        "type": ["string", "null"]
+                      }
+                    }
+                  },
+                  "billing": {
+                    "type":  ["null", "object"],
+                    "properties": {
+                      "contactId": {
+                        "type": ["integer", "null"]
+                      },
+                      "addressFullName": {
+                        "type": ["string", "null"]
+                      },
+                      "companyName": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine1": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine2": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine3": {
+                        "type": ["string", "null"]
+                      },
+                      "addressLine4": {
+                        "type": ["string", "null"]
+                      },
+                      "postalCode": {
+                        "type": ["string", "null"]
+                      },
+                      "country": {
+                        "type": ["string", "null"]
+                      },
+                      "countryIsoCode": {
+                        "type": ["string", "null"]
+                      },
+                      "countryIsoCode3": {
+                        "type": ["string", "null"]
+                      },
+                      "telephone": {
+                        "type": ["string", "null"]
+                      },
+                      "mobileTelephone": {
+                        "type": ["string", "null"]
+                      },
+                      "email": {
+                        "type": ["string", "null"]
+                      }
+                    }
+                  }
+                }
+              },
+              "warehouseId": {
+                "type": ["integer", "null"]
+              },
+              "costPriceListId": {
+                "type": ["integer", "null"]
+              },
+              "isDropship": {
+                "type": ["boolean", "null"]
+              },
+              "historicalOrder": {
+                "type": ["boolean", "null"]
+              },
+              "originalInvoiceDate": {
+                "type": ["string", "null"]
+              },
+              "orderWeighting": {
+                "type": ["integer", "null"]
+              },
+              "orderRows": {
+                "type": ["array", "null"],
+                "items": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "id": {
+                      "type": ["integer", "null"]
+                    },
+                    "orderRowSequence": {
+                      "type": ["string", "null"]
+                    },
+                    "productId": {
+                      "type": ["integer", "null"]
+                    },
+                    "productName": {
+                      "type": ["string", "null"]
+                    },
+                    "productSku": {
+                      "type": ["string", "null"]
+                    },
+                    "quantity": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "magnitude": {
+                          "type": ["string", "null"]
+                        }
+                      }
+                    },
+                    "itemCost": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "currencyCode": {
+                          "type": ["string", "null"]
+                        },
+                        "value": {
+                          "type": ["string", "null"]
+                        }
+                      }
+                    },
+                    "productPrice": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "currencyCode": {
+                          "type": ["string", "null"]
+                        },
+                        "value": {
+                          "type": ["string", "null"]
+                        }
+                      }
+                    },
+                    "discountPercentage": {
+                      "type": ["string", "null"]
+                    },
+                    "rowValue": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "taxRate": {
+                          "type": ["string", "null"]
+                        },
+                        "taxCode": {
+                          "type": ["string", "null"]
+                        },
+                        "taxCalculator": {
+                          "type": ["string", "null"]
+                        },
+                        "rowNet": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "currencyCode": {
+                                "type": ["string", "null"]
+                              },
+                              "value": {
+                                "type": ["string", "null"]
+                              }
+                            }
+                        },
+                        "rowTax": {
+                          "type": ["object", "null"],
+                          "properties": {
+                            "currencyCode": {
+                              "type": ["string", "null"]
+                            },
+                            "value": {
+                              "type": ["string", "null"]
+                            }
+                          }
+                        },
+                        "taxClassId": {
+                          "type": ["string", "null"]
+                        }
+                      }
+                    },
+                    "nominalCode": {
+                      "type": ["string", "null"]
+                    },
+                    "composition": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "currencyCode": {
+                          "type": ["boolean", "null"]
+                        },
+                        "value": {
+                          "type": ["boolean", "null"]
+                        },
+                        "parentOrderRowId": {
+                          "type": ["integer", "null"]
+                        }
+                      }
+                    },
+                    "clonedFromId": {
+                      "type": ["integer", "null"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "supported_sync_modes": ["full_refresh", "incremental"]
+      },
+      "sync_mode": "incremental",
+      "destination_sync_mode": "append"
+    },
+    {
+      "stream": {
+        "name": "brands",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": ["null", "integer"]
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        },
+        "supported_sync_modes": ["full_refresh"]
+      },
+      "sync_mode": "full_refresh",
+      "destination_sync_mode": "overwrite"
+    },
+    {
+      "stream": {
+        "name": "product_type",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": ["null", "integer"]
+            },
+            "name": {
+              "type": "string"
+            },
+            "associations": {
+              "type": ["object", "null"],
+              "properties": {
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": ["null", "integer"]
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "supported_sync_modes": ["full_refresh"]
+      },
+      "sync_mode": "full_refresh",
+      "destination_sync_mode": "overwrite"
+    },
+   {
+    "stream": {
+      "name": "product_availability",
+      "json_schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": ["null", "integer"]
+          },
+          "total": {
+            "type": "object",
+            "properties": {
+                "inStock": {
+                  "type": ["null", "integer"]
+                },
+                "onHand": {
+                  "type": ["null", "integer"]
+                },
+                "allocated": {
+                  "type": ["null", "integer"]
+                },
+                "inTransit": {
+                  "type": ["null", "integer"]
+                }
+              }
+            },
+          "warehouses": {
+            "type": ["array", "null"],
+            "items": {
+              "type": ["object", "null"],
+              "properties": {
+                "id": {
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                },
+                "inStock": {
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                },
+                "onHand": {
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                },
+                "allocated": {
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                },
+                "inTransit": {
+                  "type": [
+                    "null",
+                    "integer"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "supported_sync_modes": ["full_refresh"]
+    },
+    "sync_mode": "full_refresh",
+    "destination_sync_mode": "overwrite"
+  },
+    {
+      "stream": {
+        "name": "goods_out_notes",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties":  {
+              "id": {
+                "type": "integer"
+              },
+              "orderId": {
+                "type": "integer"
+              },
+              "warehouseId": {
+                "type": "integer"
+              },
+              "transfer": {
+                "type": "boolean"
+              },
+              "priority": {
+                "type": "boolean"
+              },
+              "status": {
+                "type": ["object", "null"],
+                "properties": {
+                  "shipped": {
+                    "type": "boolean"
+                  },
+                  "packed": {
+                    "type": "boolean"
+                  },
+                  "picked": {
+                    "type": "boolean"
+                  },
+                  "printed": {
+                    "type": "boolean"
+                  },
+                  "pickedOn": {
+                    "type": "string"
+                  },
+                  "packedOn": {
+                    "type": "string"
+                  },
+                  "shippedOn": {
+                    "type": "string"
+                  },
+                  "printedOn": {
+                    "type": "string"
+                  },
+                  "pickedById": {
+                    "type": "integer"
+                  },
+                  "packedById": {
+                    "type": "integer"
+                  },
+                  "shippedById": {
+                    "type": "integer"
+                  },
+                  "printedById": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "shipping": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string"
+                  },
+                  "boxes": {
+                    "type": "integer"
+                  },
+                  "shippingMethodId": {
+                    "type": "integer"
+                  },
+                  "weight": {
+                    "type": "string"
+                  }
+                }
+              },
+              "releaseDate": {
+                "type": "string"
+              },
+              "createdOn": {
+                "type": "string"
+              },
+              "createdBy": {
+                "type": "integer"
+              },
+              "orderRows": {
+                "type": ["array", "null"],
+                "items": {
+                  "id":{
+                    "type": ["integer", "null"]
+                  },
+                  "values": {
+                    "type": ["array", "null"],
+                    "items": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "productId": {
+                          "type": ["integer", "null"]
+                        },
+                        "quantity": {
+                          "type": ["integer", "null"]
+                        },
+                        "locationId": {
+                          "type": ["integer", "null"]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "sequence": {
+                "type": "integer"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "occured": {
+                      "type": "string"
+                    },
+                    "eventOwnerId": {
+                      "type": "integer"
+                    },
+                    "eventCode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "labelUri": {
+                "type": "string"
+              },
+              "lastEventVersion": {
+                "type": "integer"
+              }
+            }
+        },
+        "supported_sync_modes": ["full_refresh", "incremental"]
+      },
+      "sync_mode": "incremental",
+      "destination_sync_mode": "append"
+    },
+    {
+      "stream": {
+        "name": "warehouses",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+              "name": {
+                "type": "string"
+              },
+              "id": {
+                "type": "integer"
+              },
+              "typeCode": {
+                "type": "string"
+              },
+              "typeDescription": {
+                "type": "string"
+              },
+              "address": {
+                "type": "object",
+                "properties": {
+                  "addressId": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "clickAndCollectEnabled": {
+                "type": "boolean"
+              },
+              "weeklyOperatingPeriods": {
+                "type": ["object", "null" ],
+                "properties": {
+                  "timeZone": {
+                    "type": "string"
+                  },
+                  "periods": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "picked": {
+                          "type": "boolean"
+                        },
+                        "printed": {
+                          "type": "boolean"
+                        },
+                        "pickedOn": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "collectionSla": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "integer"
+                      },
+                      "timeUnits": {
+                         "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "externalTransferSlas": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "warehouseId": {
+                      "type": "integer"
+                    },
+                    "value": {
+                      "type": "integer"
+                    },
+                    "timeUnits": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+          }
+        },
+        "supported_sync_modes": ["full_refresh"]
+      },
+      "sync_mode": "full_refresh",
+      "destination_sync_mode": "overwrite"
+    },
+    {
+      "stream": {
+        "name": "stock_corrections",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+              "goodsNoteId": {
+                "type": ["null", "integer"]
+              },
+              "warehouseId": {
+                "type": ["null", "integer"]
+              },
+              "reason": {
+                "type": ["null", "string"]
+              },
+              "updatedOn": {
+                "type": "string"
+              },
+              "goodsMoved": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "productId": {
+                      "type": ["null", "integer"]
+                    },
+                    "quantity": {
+                      "type": ["null", "integer"]
+                    },
+                    "destinationLocationId": {
+                      "type": ["null", "integer"]
+                    },
+                    "batchGoodsNoteId": {
+                      "type": ["null", "integer"]
+                    },
+                    "createdOn": {
+                      "type": ["null", "string"]
+                    },
+                    "createdBy": {
+                      "type": ["null", "integer"]
+                    },
+                    "productValue":{
+                      "type": "object",
+                      "properties": {
+                        "currency": {
+                          "type": ["null", "string"]
+                        },
+                        "value": {
+                          "type": ["null", "number"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+          }
+        },
+        "supported_sync_modes": ["full_refresh", "incremental"]
+      },
+      "sync_mode": "incremental",
+      "destination_sync_mode": "append"
+    },
+    {
+      "stream": {
+        "name": "goods_in_notes",
+        "json_schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+              "id": {
+                "type": ["null", "integer"]
+              },
+              "goodsNoteId": {
+                "type": ["null", "integer"]
+              },
+              "orderId": {
+                "type": ["null", "integer"]
+              },
+              "transfer": {
+                "type": ["null", "boolean"]
+              },
+              "goodsMoved": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "productId": {
+                      "type": ["null", "integer"]
+                    },
+                    "purchaseOrderRowId": {
+                      "type": ["null", "integer"]
+                    },
+                    "quantity": {
+                      "type": ["null", "integer"]
+                    },
+                    "warehouseId": {
+                      "type": ["null", "integer"]
+                    },
+                    "destinationLocationId": {
+                      "type": ["null", "integer"]
+                    },
+                    "goodsNoteID": {
+                      "type": ["null", "integer"]
+                    },
+                    "batchGoodsNoteId": {
+                      "type": ["null", "integer"]
+                    },
+                    "productValue":{
+                      "type": "object",
+                      "properties": {
+                        "currency": {
+                          "type": ["null", "string"]
+                        },
+                        "value": {
+                          "type": ["null", "string"]
+                        }
+                      }
+                    },
+                    "cleared": {
+                      "type": ["null", "boolean"]
+                    },
+                    "valueConfirmed": {
+                      "type": ["null", "boolean"]
+                    },
+                    "allocated": {
+                      "type": ["null", "boolean"]
+                    },
+                    "quarantine": {
+                      "type": ["null", "boolean"]
+                    },
+                    "createdOn": {
+                      "type": ["null", "string"]
+                    },
+                    "createdBy": {
+                      "type": ["null", "integer"]
+                    },
+                    "updatedOn": {
+                      "type": ["null", "string"]
+                    },
+                    "updatedBy": {
+                      "type": ["null", "integer"]
+                    }
+                  }
+                }
+              },
+              "receivedOn": {
+                "type": ["null", "string"]
+              },
+              "goodsNoteStatus": {
+                "type": ["null", "string"]
+              },
+              "createdBy": {
+                "type": ["null", "integer"]
+              }
+          }
+        },
+        "supported_sync_modes": ["full_refresh", "incremental"]
+      },
+      "sync_mode": "incremental",
+      "destination_sync_mode": "append"
+    }
+  ]
+}

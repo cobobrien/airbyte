@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": ["null", "integer"]
+    },
+    "total": {
+      "type": "object",
+      "properties": {
+          "inStock": {
+            "type": ["null", "integer"]
+          },
+          "onHand": {
+            "type": ["null", "integer"]
+          },
+          "allocated": {
+            "type": ["null", "integer"]
+          },
+          "inTransit": {
+            "type": ["null", "integer"]
+          }
+      }
+    },
+    "warehouses": {
+      "type": ["array", "null"],
+      "items": {
+        "type": ["object", "null"],
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "inStock": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "onHand": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "allocated": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "inTransit": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

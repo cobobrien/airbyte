@@ -1,0 +1,17 @@
+{
+  "products": {
+    "updatedOn": "2025-05-09T17:31:10"
+  },
+  "orders": {
+    "updatedOn": "2025-05-10T08:17:25"
+  },
+  "goods_out_notes": {
+    "createdOn": "2025-05-10T08:16:46"
+  },
+  "stock_corrections": {
+    "updatedOn": "2025-05-10T03:10:20"
+  },
+  "goods_in_notes": {
+    "receivedDate": "2025-05-10T08:00:50"
+  }
+}
